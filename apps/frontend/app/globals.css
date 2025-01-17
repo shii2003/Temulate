@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  @apply h-full w-full bg-neutral-900 text-white;
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Neon Text Effect */
+.neon-text {
+  color: #a020f0;
+  text-shadow: 0 0 20px #a020f0;
+}
+
+/* Gradient Background */
+.gradient-bg {
+  @apply bg-gradient-to-br from-purple-700 to-purple-900;
+}
+
+/* Grid Overlay Texture */
+.grid-overlay {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.1;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Purple Glow Texture */
+.gradient-texture {
+  background: radial-gradient(circle, rgba(160, 32, 240, 0.3) 0%, rgba(138, 43, 226, 0.1) 70%);
+  mix-blend-mode: lighten;
+  filter: blur(80px);
+  opacity: 0.3;
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
