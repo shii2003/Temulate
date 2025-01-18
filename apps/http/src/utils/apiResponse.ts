@@ -7,7 +7,7 @@ interface ApiResponseOptions {
     error?: any;
 }
 
-const sendApiRespnose = (res: Response, options: ApiResponseOptions): Response => {
+export const sendApiRespnose = (res: Response, options: ApiResponseOptions): Response => {
     const { statusCode, message, data, error } = options;
 
     const responsePayload = {

@@ -24,7 +24,15 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 
-app.use("api/v1/auth", authRoutes);
+app.use("/api/v1/auth", authRoutes);
+app.use((
+    err: unknown,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    errorHandler(err, req, res, next);
+})
 
 app.use((err: unknown,
     req: Request,
@@ -43,3 +51,4 @@ app.get('/', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT} in developmet env`);
 })
+

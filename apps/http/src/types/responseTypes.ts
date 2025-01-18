@@ -28,6 +28,13 @@ export const signupSchema = z.object({
     message: "Passwords do not match",
 });
 
+export const signupSchemaTest = z.object({
+    username: z.string().min(1, "Username is required."),
+    email: z.string().email("Invalid email address."),
+    password: z.string().min(8, "Password must be at least 8 characters."),
+    confirmPassword: z.string().min(1, "Forgot password is required."),
+});
+
 export const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z
