@@ -2,6 +2,8 @@ import { NextFunction, Request, Response } from "express";
 import { createUser, loginUser } from "../services/auth.service";
 import { sendApiRespnose } from "../utils/apiResponse";
 import { NODE_ENV } from "../constants/env";
+import { AuthenticatedRequest } from "../middlewares/auth.middleware";
+import { AppError } from "../utils/AppError";
 
 export const signupHandler = async (
     req: Request,
@@ -65,33 +67,29 @@ export const loginHandler = async (
     }
 }
 
-// const logoutHandler = async()
+export const logoutHandler = async (
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+) => {
+    try {
+        const userId = req.user?.id;
 
-// export const signupHandlerTest = async (req: Request, res: Response) => {
-//     const { username, email, password } = req.body;
+        if (!userId) {
+            throw new AppError(
+                "User not logged in.",
+                401
+            )
+        }
 
-//     try {
-//         const user = await prisma.user.create({
-//             data: {
-//                 username,
-//                 email,
-//                 password,
-//             },
-//             select: {
-//                 id: true,
-//                 username: true,
-//                 email: true,
-//             }
-//         })
-//         if (!user) {
-//             res.status(400).json({ message: "failed to create user." });
-//         }
+        res.clearCookie("accessToken");
+        sendApiRespnose(res, {
+            statusCode: 200,
+            message: "logged out successfully"
+        }
+        )
+    } catch (error) {
+        next(error);
+    }
+}
 
-//         res.status(200).json({ user, message: "user created succefully." });
-
-
-//     } catch (error) {
-//         console.log("Error in /signup route", error);
-//         res.status(500).json({ message: "Internal Server Error" })
-//     }
-// }

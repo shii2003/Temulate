@@ -14,8 +14,8 @@ export interface AuthenticatedRequest extends Request {
 
 
 export const authenticate = async (
-    res: Response,
     req: AuthenticatedRequest,
+    res: Response,
     next: NextFunction
 ) => {
     try {
@@ -29,7 +29,8 @@ export const authenticate = async (
         }
 
         const decodeUser = jwt.verify(token, ACCESS_TOKEN_SECRET) as JwtPayload;
-        if (!decodeUser) {
+
+        if (!decodeUser || !decodeUser.userId) {
             throw new AppError(
                 "Invalid access token.",
                 401
@@ -37,7 +38,7 @@ export const authenticate = async (
         }
 
         const user = await prisma.user.findUnique({
-            where: { id: decodeUser.id },
+            where: { id: decodeUser.userId },
             select: {
                 id: true,
                 username: true,
@@ -45,6 +46,7 @@ export const authenticate = async (
             }
 
         });
+
 
         if (!user) {
             throw new AppError(
