@@ -24,6 +24,7 @@ model User {
 
   ownedRooms  Room[]     @relation("OwnedRooms")
   joinedRooms RoomUser[]
+  Message     Message[]
 }
 
 model Room {
@@ -35,6 +36,7 @@ model Room {
 
   owner   User       @relation("OwnedRooms", fields: [ownerId], references: [id], onDelete: Cascade)
   members RoomUser[]
+  Message Message[]
 }
 
 model RoomUser {
@@ -47,4 +49,15 @@ model RoomUser {
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@unique([userId, roomId])
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  userId    Int
+  roomId    Int
+  timeStamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 }
