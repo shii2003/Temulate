@@ -1,9 +1,9 @@
 {
-  "name": "ws",
+  "name": "websocket",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "build": "tsc -b",
+    "build": "tsc",
     "dev": "ts-node-dev --files src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -18,6 +18,6 @@
   "dependencies": {
     "@repo/db": "*",
     "redis": "^4.7.0",
-    "ws": "^1.0.0"
+    "ws": "^8.18.0"
   }
 }

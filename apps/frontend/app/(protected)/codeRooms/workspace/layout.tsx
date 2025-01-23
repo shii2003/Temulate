@@ -9,7 +9,7 @@ export default function WorkspaceLayout({
     return (
         <div className="flex flex-col justify-start items-center h-screen w-full overflow-hidden">
             <Appbar />
-            <div className="flex-1 w-full">
+            <div className="flex-1 w-full h-screen mb-3">
                 {children}
             </div>
 

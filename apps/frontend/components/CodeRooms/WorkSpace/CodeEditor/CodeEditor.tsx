@@ -1,8 +1,9 @@
 "use client";
 import React from 'react';
-import Terminal from './Terminal';
-import InteractiveEditor from './InteractiveEditor';
+
 import Split from '@uiw/react-split';
+import InteractiveEditor from './InteractiveEditor';
+import Terminal from './Terminal';
 
 
 const CodeEditor: React.FC = () => {

@@ -1,3 +1,5 @@
+import GroupChatBox from '@/components/Messages/GroupChatBox';
+import OnlineUsersScroll from '@/components/utils/OnlineUsersScroll';
 import React from 'react';
 
 type LobbyProps = {
@@ -7,8 +9,11 @@ type LobbyProps = {
 const Lobby: React.FC<LobbyProps> = () => {
 
     return (
-        <div>
-            Lobby
+        <div className=' h-full '>
+            <OnlineUsersScroll />
+            <div className='flex-1 overflow-y-auto'>
+                <GroupChatBox />
+            </div>
         </div>
     )
 }
