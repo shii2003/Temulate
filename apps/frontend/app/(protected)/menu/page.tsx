@@ -7,7 +7,7 @@ type pageProps = {
 const page: React.FC<pageProps> = () => {
 
     return (
-        <div className='flex h-screen w-full'>
+        <div className='flex flex-1  w-full '>
 
             menuhello
         </div>

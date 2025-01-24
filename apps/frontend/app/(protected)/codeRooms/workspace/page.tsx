@@ -6,7 +6,7 @@ import React from 'react';
 const page: React.FC = () => {
 
     return (
-        <div className='h-screen w-full overflow-hidden  '>
+        <div className='h-full overflow-hidden w-full '>
             <Workspace />
         </div>
     )

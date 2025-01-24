@@ -8,7 +8,7 @@ import Lobby from './Lobby/Lobby';
 const Workspace: React.FC = () => {
 
     return (
-        <div className='w-full h-screen '>
+        <div className='w-full h-full'>
             <Split
                 style={{ height: '100%', borderRadius: 3 }}
                 mode="horizontal"
@@ -62,7 +62,7 @@ const Workspace: React.FC = () => {
                 </Split>
                 <div
                     style={{ minWidth: 80, width: '30%', height: '100%' }}
-
+                    className='flex'
                 >
                     <Lobby />
                 </div>

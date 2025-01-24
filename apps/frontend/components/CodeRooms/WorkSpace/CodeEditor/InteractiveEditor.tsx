@@ -11,6 +11,7 @@ const InteractiveEditor: React.FC = () => {
         setCode(value);
     }, []);
 
+
     return (
         <CodeMirror
             value={code}

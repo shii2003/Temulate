@@ -17,10 +17,10 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
 
-    <div className="flex flex-col  items-center justify-center">
+    <div className="flex flex-col  items-center justify-center  h-screen">
       <Navbar />
       <div className="flex grow justify-center mt-[9rem] ">
-        <div className="flex justify-center flex-col gap-7">
+        <div className="flex  flex-col gap-7">
           <Tagline />
           <p className="text-gray-400 text-center text-lg  font-semibold">
             Empowering teams to build, share, and grow together.
