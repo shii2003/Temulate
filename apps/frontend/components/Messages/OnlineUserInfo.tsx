@@ -29,7 +29,7 @@ const OnlineUserInfo: React.FC<OnlineUserInfoProps> = ({ username, email }) => {
                 <div className="absolute top-0 left-7 w-3.5 h-3.5 bg-green-500 border-2 border-neutral-800 rounded-full"></div>
             </div>
 
-            <div className='flex flex-col text-xs break-words max-w-[10ch]'>
+            <div className='flex flex-col text-xs break-words w-[10ch]'>
                 <p>{truncateUsername(username, 10)}</p>
             </div>
         </div>

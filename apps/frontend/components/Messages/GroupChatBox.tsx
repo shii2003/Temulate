@@ -2,8 +2,6 @@ import React from 'react';
 import SentMessageBubble from './MessageBubble';
 import MessageBubble from './MessageBubble';
 
-
-
 type GroupChatBoxProps = {
 
 };

@@ -1,12 +1,21 @@
 import React from 'react';
 
 type SentMessageBubbleProps = {
+    username?: string,
     message: string,
     time: string,
     messageType: 'sent' | 'received';
 };
 
-const SentMessageBubble: React.FC<SentMessageBubbleProps> = ({ message, time, messageType }) => {
+const truncateUsername = (username: string, maxLength: number) => {
+    const ellipsis = "..."
+    if (username.length > maxLength) {
+        return username.substring(0, maxLength - ellipsis.length) + ellipsis;
+    }
+    return username;
+}
+
+const SentMessageBubble: React.FC<SentMessageBubbleProps> = ({ username, message, time, messageType }) => {
     const isSent = messageType == 'sent';
 
     return (

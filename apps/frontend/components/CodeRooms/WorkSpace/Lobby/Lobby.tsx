@@ -19,7 +19,7 @@ const Lobby: React.FC<LobbyProps> = () => {
     return (
         <div className='flex bg-neutral-800  flex-col h-full w-full'>
             <OnlineUsersList />
-            <div className='flex-1 overflow-y-auto mb-1'>
+            <div className='flex-1 overflow-y-auto mb-1 mt-2'>
                 <GroupChatBox />
             </div>
             <MessageInputBox />
