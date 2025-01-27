@@ -41,7 +41,7 @@ const OnlineUsersList: React.FC<OnlineUsersListProps> = () => {
 
             <div className='flex items-center  text-sm h-[3rem] px-4 py-1 gap-2 w-full text-indigo-300 font-medium'>
                 <p className='text-neutral-500'>Online Users: </p>
-                <p className='px-4 py-1 rounded-2xl shadow-sm shadow-neutral-500 font-semibold text-base'>{users.length}</p>
+                <p className='px-4 py-1 rounded-2xl shadow-sm shadow-neutral-600 font-semibold text-base'>{users.length}</p>
             </div>
             <div className='flex flex-grow relative items-center gap-2 w-full'>
                 <button
