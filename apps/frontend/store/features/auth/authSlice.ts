@@ -19,6 +19,24 @@ const initialState: AuthState = {
     error: null,
 };
 
+export const signup = createAsyncThunk(
+    'auth/signup',
+    async (
+        credentials: { username: string; email: string; password: string; confirmPassword: string },
+        { rejectWithValue }
+    ) => {
+        try {
+            const response = await axios.post("http://localhost:4004/api/v1/auth/signup",
+                credentials,
+                { withCredentials: true }
+            );
+            return response.data.data;
+        } catch (error: any) {
+            return rejectWithValue(error.response?.data?.message || 'Failed to signup');
+        }
+    }
+);
+
 export const login = createAsyncThunk(
     'auth/login',
     async (credentials:
@@ -31,7 +49,7 @@ export const login = createAsyncThunk(
             );
             return repsonse.data.data;
         } catch (error: any) {
-            return rejectWithValue(error.respone?.data?.message || 'Failed to login')
+            return rejectWithValue(error.response?.data?.message || 'Failed to login')
         }
     }
 );
@@ -81,7 +99,19 @@ const authSlice = createSlice({
             .addCase(logout.rejected, (state, action) => {
                 state.isLoading = false;
                 state.error = action.payload as string;
-            });
+            })
+            .addCase(signup.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+            })
+            .addCase(signup.fulfilled, (state, action) => {
+                state.isLoading = false;
+                state.user = action.payload;
+            })
+            .addCase(signup.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string;
+            })
     },
 });
 

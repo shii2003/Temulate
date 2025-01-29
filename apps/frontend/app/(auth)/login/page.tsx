@@ -2,30 +2,39 @@
 import ResponsiveLogo from '@/components/logo/ResponsiveLogo';
 import { useAppDispatch, useAppSelector } from '@/hooks/redux';
 import { login } from '@/store/features/auth/authSlice';
+import { loginSchema } from '@/types/authSchemas';
+import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { z } from 'zod';
+
 
 type pageProps = {
 
 };
 
+type LoginFormData = z.infer<typeof loginSchema>;
+
 const page: React.FC<pageProps> = () => {
 
     const dispatch = useAppDispatch();
-    const { isLoading, error } = useAppSelector((state) => state.auth);
     const router = useRouter();
+    const { isLoading, error } = useAppSelector((state) => state.auth);
 
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+    const {
+        register,
+        handleSubmit,
+        formState: { errors }
+    } = useForm<LoginFormData>({ resolver: zodResolver(loginSchema) });
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleLogin = async (data: LoginFormData) => {
 
-        e.preventDefault();
-        const loadingToastId = toast.loading('Loggin in...');
+        const loadingToastId = toast.loading('Logging in...');
         try {
-            const result = await dispatch(login({ email, password }));
+            const result = await dispatch(login(data));
             console.log("login result:", result);
 
             if (login.fulfilled.match(result)) {
@@ -57,7 +66,7 @@ const page: React.FC<pageProps> = () => {
                     </h1>
                     <form
                         className="space-y-4 md:space-y-6"
-                        onSubmit={handleLogin}
+                        onSubmit={handleSubmit(handleLogin)}
                     >
 
                         <div className='mb-6 flex  flex-col gap-4'>
@@ -70,15 +79,13 @@ const page: React.FC<pageProps> = () => {
                                 </label>
                                 <input
                                     type="email"
-                                    value={email}
-                                    name="email"
                                     id="email"
-                                    onChange={((e) => setEmail(e.target.value))}
+                                    {...register("email")}
                                     className="bg-neutral-800 border border-neutral-700 text-white text-sm rounded-lg placeholder-neutral-500 focus:ring-2 focus:ring-indigo-300 focus:outline-none block w-full p-2.5"
                                     placeholder="name@company.com"
                                     required
-
                                 />
+                                {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
                             </div>
                             <div className=''>
                                 <label
@@ -89,26 +96,25 @@ const page: React.FC<pageProps> = () => {
                                 </label>
                                 <input
                                     type="password"
-                                    value={password}
-                                    name="password"
                                     id="password"
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    {...register("password")}
                                     className="bg-neutral-800 border border-neutral-700 text-white text-sm rounded-lg placeholder-neutral-500 focus:ring-2 focus:ring-indigo-300 focus:outline-none block w-full p-2.5"
                                     placeholder="••••••••"
                                     required
                                 />
+                                {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
                             </div>
                         </div>
 
-
+                        {error && <p className='text-sm text-red-500'>{error}</p>}
                         <button
                             type="submit"
                             className={`w-full text-sm font-medium text-neutral-300 focus:ring focus:outline-none focus:ring-indigo-400  bg-indigo-300 bg-opacity-10 hover:bg-opacity-25  rounded-lg text-md px-5 py-2.5 text-center tracking-[.05rem] `}
 
                         >
-                            {isLoading ? 'Loggin in...' : 'Login'}
+                            {isLoading ? 'Logging in...' : 'Login'}
                         </button>
-                        {error && <p className='text-sm text-red-500'>{error}</p>}
+
 
                         <p className="text-sm font-light text-gray-400">
                             Don't have an account?{" "}

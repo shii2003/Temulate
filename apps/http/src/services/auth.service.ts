@@ -102,7 +102,7 @@ export const loginUser = async (email: string, password: string) => {
             )
         }
 
-        const isPasswordValid = comparePasswords(validatedData.password, user.password);
+        const isPasswordValid = await comparePasswords(validatedData.password, user.password);
 
         if (!isPasswordValid) {
             throw new AppError(
