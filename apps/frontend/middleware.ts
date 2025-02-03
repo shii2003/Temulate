@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
     const accessToken = request.cookies.get('accessToken')?.value;
 
     const unprotectedRoutes = ['/', '/login', '/signup'];
-    const protectedRoutes = ['/menu', '/codeRooms'];
+    const protectedRoutes = ['/menu', '/codeRooms', '/rooms'];
 
     if (accessToken) {
         if (unprotectedRoutes.includes(pathname)) {

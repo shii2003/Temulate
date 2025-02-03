@@ -1,4 +1,6 @@
 import RoomInfoCard from '@/components/ui/Cards/RoomInfoCard';
+import Chat from '@/components/ui/Cards/WebSocketClientCard';
+import WebSocketClientCard from '@/components/ui/Cards/WebSocketClientCard';
 import React from 'react';
 
 const page: React.FC = () => {
@@ -41,6 +43,7 @@ const page: React.FC = () => {
                     roomName='Room1'
                 />
             </div>
+            <Chat />
 
         </div>
     )
