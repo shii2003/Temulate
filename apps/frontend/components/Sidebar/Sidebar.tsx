@@ -21,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = () => {
 
 
     return (
-        <div className="h-screen w-16 sm:w-56 md:w-64 lg:w-80 bg-neutral-900 border-r border-neutral-800 overflow-hidden">
+        <div className=" borderh-screen w-16 sm:w-56 md:w-64 lg:w-80 bg-neutral-900 border-r border-neutral-800 overflow-hidden">
 
             <div className="flex flex-col items-center h-full text-neutral-500 font-semibold">
 

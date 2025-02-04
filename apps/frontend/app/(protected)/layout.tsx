@@ -12,9 +12,11 @@ export default function ProtectedLayout({
     const isWorkspaceRoute = pathname.startsWith("/codeRooms/workspace");
 
     return (
-        <div className="flex ">
+        <div className="flex h-screen overflow-hidden">
             {!isWorkspaceRoute && <Sidebar />}
-            {children}
+            <div className="flex-1 overflow-y-auto">
+                {children}
+            </div>
         </div>
     )
 }
