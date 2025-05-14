@@ -104,6 +104,7 @@ export class User {
             console.log(`room created roomid: ${room.id} room name: ${room.name}`)
             RoomManager.getInstance().addRoom(room.id, this);
             this.roomId = room.id;
+            console.log(`current room: ${this.roomId}`)
 
             this.send(
                 {
@@ -127,7 +128,6 @@ export class User {
 
     private async handleJoinRoom(roomName: string) {
         try {
-
             const room = await prisma.room.findUnique({
                 where: { name: roomName },
                 include: { members: true },
@@ -230,7 +230,17 @@ export class User {
     }
 
     private async handleSendMessage(content: string) {
-        if (this.roomId) {
+        try {
+            if (!this.roomId) {
+                console.log(`User ${this.username} is not in a room. Current roomId:  ${this.roomId}`)
+                this.send({
+                    type: "error",
+                    payload: {
+                        message: "Not currently in a room"
+                    }
+                });
+                return;
+            }
 
             const message = await MessageManager.getInstance().sendMessage(this.roomId, this.id, content);
 
@@ -246,14 +256,17 @@ export class User {
                 }
             );
             console.log(`user: ${this.username} sent the message successfully ${message}`)
-        } else {
+        } catch (error) {
             this.send(
                 {
                     type: 'error',
-                    payload: { message: 'Not currently in a room' }
+                    payload: {
+                        message: "unable to send message"
+                    }
                 }
-            );
+            )
         }
+
     }
 
     destroy() {

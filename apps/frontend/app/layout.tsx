@@ -5,6 +5,7 @@ import "./globals.css";
 import { store } from "@/store/store";
 import { Provider } from "react-redux";
 import { Toaster } from "sonner";
+import { WebSocketProvider } from "@/context/WebSocketContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,14 +25,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <Provider store={store}>
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          {children}
-          <Toaster richColors />
-        </body>
-      </Provider>
+      <WebSocketProvider>
+        <Provider store={store}>
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            {children}
+            <Toaster richColors />
+          </body>
+        </Provider>
+      </WebSocketProvider>
     </html>
   );
 }

@@ -13,7 +13,7 @@ const CreateNewRoomCard: React.FC<CreateNewRoomCardProps> = () => {
 
     return (
         <>
-            <div className='w-56 flex flex-col gap-4 justify-center items-center border border-neutral-600 rounded-md bg-neutral-700 text-indigo-400 font-semibold bg-opacity-70'>
+            <div className='w-56 flex flex-col gap-4 justify-center items-center border border-neutral-600 rounded-md bg-neutral-700 text-indigo-400 font-semibold bg-opacity-70 h-40'>
                 <p className='text-xs underline font-thin text-neutral-500'>create you own code room here </p>
                 <CreateNewRoomButton
                     onClick={() => setIsModalOpen(prev => !prev)}

@@ -3,9 +3,8 @@ import OnlineUserInfo from './OnlineUserInfo';
 import { MdOutlineNavigateBefore } from "react-icons/md";
 import { MdOutlineNavigateNext } from "react-icons/md";
 
-type OnlineUsersListProps = {
+type OnlineUsersListProps = {};
 
-};
 const users = [
     { id: 1, name: 'Masaooooooooooo', email: 'masao@example.com', imageSrc: '/masao.jpg' },
     { id: 2, name: 'John Doe', email: 'john@example.com', imageSrc: '/john.jpg' },
