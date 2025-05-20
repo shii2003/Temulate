@@ -1,7 +1,12 @@
+"use client";
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { joinRoom } from '@/services/webSocket';
+import { setLoading } from '@/store/features/room/roomSlice';
+import { RootState } from '@/store/store';
 import { useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
+import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
 
 type JoinRoomModalProps = {
@@ -13,14 +18,14 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
 
     const [roomName, setRoomName] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
-    const { sendMessage, isLoading } = useWebSocket();
 
-    useEffect(() => {
-        if (!isOpen) {
-            setRoomName("");
-            setError(null);
-        }
-    }, [isOpen, setError]);
+    const dispatch = useDispatch();
+    const router = useRouter();
+    const ws = useWebSocket("ws://localhost:8080");
+    const { isLoading } = useSelector((state: RootState) => state.room);
+    const { user } = useSelector((state: RootState) => state.auth);
+    const [toastId, setToastId] = useState<string | number | null>(null);
+
 
     const isRoomNameLengthValid = (name: string) => {
         if (name.length > 20) {
@@ -29,20 +34,72 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
         return true;
     }
 
+    useEffect(() => {
+        if (!ws) return;
+
+        const handleMessage = (event: MessageEvent) => {
+            try {
+                const message = JSON.parse(event.data);
+
+                if (message.type === 'error') {
+                    toast.dismiss(toastId);
+                    toast.error(message.payload.message);
+                    dispatch(setLoading(false));
+                }
+
+                if (message.type === 'room-joined') {
+                    toast.dismiss(toastId);
+                    toast.success(`Joined room: ${message.payload.roomName}`);
+                    dispatch(setLoading(false));
+                    onClose();
+                    router.push(`/codeRooms/${message.payload.roomId}`);
+                }
+            } catch (error) {
+                console.error('Message parsing error:', error);
+            }
+        };
+
+        ws.addEventListener('message', handleMessage);
+        return () => ws.removeEventListener('message', handleMessage);
+    }, [ws, toastId, dispatch, onClose]);
+
+
     const handleJoinRoom = () => {
-        if (!roomName.trim()) return alert("Enter a room name!");
-        if (!isRoomNameLengthValid(roomName.trim()))
-            return toast.error("Room name should not be longer than 20 charachters!");
 
-        sendMessage(
-            {
-                type: "join-room",
-                payload: { roomName }
-            },
-            setError
-        );
+        if (!user) {
+            toast.error("Please login to join a room");
+            return;
+        }
 
-        if (!error) onClose();
+        if (!roomName.trim()) {
+            toast.warning("Missing Information", {
+                description: 'Please enter a room name',
+            });
+            return;
+        }
+        if (!isRoomNameLengthValid(roomName.trim())) {
+            toast.warning('Invalid Input', {
+                description: 'Room name must be 20 characters or less',
+            });
+            return;
+        }
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+            toast.error('Connection Error', {
+                description: 'Unable to connect to the server. Please try again later.',
+            });
+            return;
+        }
+
+        const id = toast.loading('Joining room...');
+        setToastId(id);
+        dispatch(setLoading(true));
+
+        ws.send(JSON.stringify({
+            type: 'join-room',
+            payload: {
+                roomName: roomName.trim(),
+            }
+        }));
     }
 
     if (!isOpen) return null;
@@ -81,7 +138,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
                             }`}
                         disabled={isLoading}
                     >
-                        {isLoading ? "Joining" : "Join Room"}
+                        {isLoading ? "Joining..." : "Join Room"}
                     </button>
 
                 </div>

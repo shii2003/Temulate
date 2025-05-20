@@ -9,14 +9,14 @@ type MessageInputBoxProps = {
 const MessageInputBox: React.FC<MessageInputBoxProps> = () => {
 
     const [message, setMessage] = useState<string>("");
-    const { sendChatMessage } = useWebSocket();
+    // const { sendChatMessage } = useWebSocket();
 
-    const handleSend = () => {
-        if (!message.trim()) return;
+    // const handleSend = () => {
+    //     if (!message.trim()) return;
 
-        sendChatMessage(message);
-        setMessage("");
-    }
+    //     sendChatMessage(message);
+    //     setMessage("");
+    // }
     return (
         <div className='flex h-16 mb-10 gap-3 items-center justify-center px-3 py-2 '>
             <div className=' flex flex-grow items-center justify-center '>
@@ -28,14 +28,14 @@ const MessageInputBox: React.FC<MessageInputBoxProps> = () => {
                     onKeyDown={(e) => {
                         if (e.key === "Enter" && !e.shiftKey) {
                             e.preventDefault();
-                            handleSend();
+                            // handleSend();
                         }
                     }}
                 />
             </div>
             <button
                 className=' h-10 w-10 flex items-center justify-center rounded-full p-2 cursor-pointer bg-neutral-700 hover:bg-neutral-600 '
-                onClick={handleSend}
+            // onClick={handleSend}
             >
                 <BsFillSendFill className='text-indigo-300 text-lg ' />
             </button>

@@ -15,15 +15,68 @@ interface DrawingAction {
     width: number;
 }
 
-const useDraw = (color: string = 'black', lineWidth: number = 2) => {
+
+interface NormalizedDrawingAction {
+    type: 'line';
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    color: string;
+    width: number;
+}
+
+const DEFAULT_STORAGE_KEY = 'canvas-drawing-data';
+
+const useDraw = (color: string = 'black', lineWidth: number = 2, storageKey: string = DEFAULT_STORAGE_KEY) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
     const [lastPosition, setLastPosition] = useState<Position | null>(null);
 
-    // Store all drawing actions to recreate exactly as drawn
-    const actionsRef = useRef<DrawingAction[]>([]);
+    const normalizedActionsRef = useRef<NormalizedDrawingAction[]>([]);
 
-    // Function to redraw everything from stored actions
+    const canvasDimensionsRef = useRef({ width: 0, height: 0 });
+
+    const normalizeCoordinates = (x: number, y: number): Position => {
+        const { width, height } = canvasDimensionsRef.current;
+        if (width === 0 || height === 0) return { x: 0, y: 0 };
+
+        return {
+            x: x / width,
+            y: y / height
+        };
+    };
+
+    const saveDrawing = () => {
+        try {
+            localStorage.setItem(storageKey, JSON.stringify(normalizedActionsRef.current));
+            console.log('Drawing saved to localStorage');
+        } catch (error) {
+            console.error('Error saving drawing to localStorage:', error);
+        }
+    };
+
+    const loadDrawing = () => {
+        try {
+            const savedData = localStorage.getItem(storageKey);
+            if (savedData) {
+                normalizedActionsRef.current = JSON.parse(savedData);
+                redrawCanvas();
+                console.log('Drawing loaded from localStorage');
+            }
+        } catch (error) {
+            console.error('Error loading drawing from localStorage:', error);
+        }
+    };
+
+    const denormalizeCoordinates = (normalizedX: number, normalizedY: number): Position => {
+        const { width, height } = canvasDimensionsRef.current;
+        return {
+            x: normalizedX * width,
+            y: normalizedY * height
+        };
+    };
+
     const redrawCanvas = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -31,17 +84,26 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Clear the canvas first
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Redraw all actions
-        actionsRef.current.forEach(action => {
+        canvasDimensionsRef.current = {
+            width: canvas.width,
+            height: canvas.height
+        };
+
+        normalizedActionsRef.current.forEach(action => {
             if (action.type === 'line') {
+
+                const start = denormalizeCoordinates(action.startX, action.startY);
+                const end = denormalizeCoordinates(action.endX, action.endY);
+
+                const scaledWidth = Math.max(1, action.width * Math.min(canvas.width, canvas.height) / 500);
+
                 ctx.beginPath();
-                ctx.moveTo(action.startX, action.startY);
-                ctx.lineTo(action.endX, action.endY);
+                ctx.moveTo(start.x, start.y);
+                ctx.lineTo(end.x, end.y);
                 ctx.strokeStyle = action.color;
-                ctx.lineWidth = action.width;
+                ctx.lineWidth = scaledWidth;
                 ctx.lineCap = 'round';
                 ctx.stroke();
                 ctx.closePath();
@@ -49,7 +111,6 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
         });
     };
 
-    // Function to clear the canvas
     const clearCanvas = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -59,8 +120,9 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
 
         context.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Clear the stored actions
-        actionsRef.current = [];
+        normalizedActionsRef.current = [];
+
+        localStorage.removeItem(storageKey);
     };
 
     const startDrawing = (event: MouseEvent) => {
@@ -94,7 +156,6 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
             y: event.clientY - rect.top,
         };
 
-        // Draw the line
         context.beginPath();
         context.moveTo(lastPosition.x, lastPosition.y);
         context.lineTo(currentPosition.x, currentPosition.y);
@@ -104,16 +165,20 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
         context.stroke();
         context.closePath();
 
-        // Store this action
-        actionsRef.current.push({
+        const normalizedStart = normalizeCoordinates(lastPosition.x, lastPosition.y);
+        const normalizedEnd = normalizeCoordinates(currentPosition.x, currentPosition.y);
+
+        normalizedActionsRef.current.push({
             type: 'line',
-            startX: lastPosition.x,
-            startY: lastPosition.y,
-            endX: currentPosition.x,
-            endY: currentPosition.y,
+            startX: normalizedStart.x,
+            startY: normalizedStart.y,
+            endX: normalizedEnd.x,
+            endY: normalizedEnd.y,
             color,
             width: lineWidth
         });
+
+        saveDrawing();
 
         setLastPosition(currentPosition);
     };
@@ -123,7 +188,6 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
         setLastPosition(null);
     };
 
-    // Set up canvas size on mount and resize
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -134,26 +198,36 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
             const container = canvas.parentElement;
             if (!container) return;
 
-            // Set the canvas dimensions to match the container
+            const dpr = window.devicePixelRatio || 1;
+
             const displayWidth = container.clientWidth;
             const displayHeight = container.clientHeight;
 
-            // Only resize if dimensions actually changed
-            if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
-                canvas.width = displayWidth;
-                canvas.height = displayHeight;
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
 
-                // Redraw all content if there are any actions
-                if (actionsRef.current.length > 0) {
-                    redrawCanvas();
-                }
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+                ctx.scale(dpr, dpr);
+            }
+
+            canvas.style.width = `${displayWidth}px`;
+            canvas.style.height = `${displayHeight}px`;
+
+            canvasDimensionsRef.current = {
+                width: displayWidth,
+                height: displayHeight
+            };
+
+            if (normalizedActionsRef.current.length > 0) {
+                redrawCanvas();
             }
         };
 
-        // Set initial size
         setCanvasSize();
 
-        // Debounce the resize event
+        loadDrawing();
+
         let resizeTimeout: number | null = null;
         const handleResize = () => {
             if (resizeTimeout) {
@@ -172,7 +246,6 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
         };
     }, []);
 
-    // Set up event listeners
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -182,15 +255,57 @@ const useDraw = (color: string = 'black', lineWidth: number = 2) => {
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseleave', stopDrawing);
 
+        const handleTouchStart = (e: TouchEvent) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }
+        };
+
+        const handleTouchMove = (e: TouchEvent) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                canvas.dispatchEvent(mouseEvent);
+            }
+        };
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        };
+
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+
         return () => {
             canvas.removeEventListener('mousedown', startDrawing);
             canvas.removeEventListener('mousemove', draw);
             canvas.removeEventListener('mouseup', stopDrawing);
             canvas.removeEventListener('mouseleave', stopDrawing);
+            canvas.removeEventListener('touchstart', handleTouchStart);
+            canvas.removeEventListener('touchmove', handleTouchMove);
+            canvas.removeEventListener('touchend', handleTouchEnd);
         };
     }, [isDrawing, lastPosition, color, lineWidth]);
 
-    return { canvasRef, clearCanvas };
+    return {
+        canvasRef,
+        clearCanvas,
+        saveDrawing,
+        loadDrawing
+    };
 };
 
 export default useDraw;

@@ -39,11 +39,11 @@ const Workspace: React.FC = () => {
         //         </div>
         //     </Split>
         // </div>
-        <div className='flex w-full h-full border border-green-900 max-w-7xl mx-auto'>
-            <div className=' w-3/5  min-w-5 border-2 border-green-600 '>
+        <div className='flex w-full h-full  max-w-7xl mx-auto'>
+            <div className=' w-3/5  min-w-5 '>
                 <DrawingCanvas />
             </div>
-            <div className='w-2/5 border-2 border-green-300'>
+            <div className='w-2/5'>
                 <Lobby />
             </div>
         </div>
