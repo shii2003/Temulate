@@ -23,7 +23,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
     const ws = useWebSocket("ws://localhost:8080");
     const { isLoading } = useSelector((state: RootState) => state.room);
     const { user } = useSelector((state: RootState) => state.auth);
-    const [toastId, setToastId] = useState<string | number | null>(null);
+    const [toastId, setToastId] = useState<string | number | undefined>(undefined);
 
     const isRoomNameLengthValid = (name: string) => {
         if (name.length > 20) {
@@ -132,7 +132,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
                         className='px-4 py-2 bg-indigo-400 bg-opacity-70 hover:bg-opacity-30 text-neutral-200 font-semibold rounded-md'
                     >
                         {isLoading ? "Create Room" : "Creating..."}
-                        Create Room
+
                     </button>
                     {/* {error && (
                         <div className='text-red-500 text-sm mt-2'>

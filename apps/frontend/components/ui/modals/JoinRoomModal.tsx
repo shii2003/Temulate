@@ -24,7 +24,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
     const ws = useWebSocket("ws://localhost:8080");
     const { isLoading } = useSelector((state: RootState) => state.room);
     const { user } = useSelector((state: RootState) => state.auth);
-    const [toastId, setToastId] = useState<string | number | null>(null);
+    const [toastId, setToastId] = useState<string | number | undefined>(undefined);
 
 
     const isRoomNameLengthValid = (name: string) => {
@@ -67,7 +67,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
     const handleJoinRoom = () => {
 
         if (!user) {
-            toast.error("Please login to join a room");
+            toast.error("Please login to join a room2");
             return;
         }
 
