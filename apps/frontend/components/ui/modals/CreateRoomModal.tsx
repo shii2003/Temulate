@@ -131,7 +131,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
                         onClick={handleCreateRoom}
                         className='px-4 py-2 bg-indigo-400 bg-opacity-70 hover:bg-opacity-30 text-neutral-200 font-semibold rounded-md'
                     >
-                        {isLoading ? "Create Room" : "Creating..."}
+                        {isLoading ? "Creating..." : "Create Room"}
 
                     </button>
                     {/* {error && (

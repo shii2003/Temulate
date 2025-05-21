@@ -2,16 +2,7 @@ import Tagline from "@/components/logo/Tagline";
 import Navbar from "@/components/Navbar/Navbar";
 
 import GetStartedButton from "@/components/ui/buttons/GetStartedButton";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
-  title: "Temulate",
-  description: "Organize. Prioritize. Execute.",
-  icons: {
-    icon: "/temulateLogo.svg",
-    apple: "/temulateLogo.svg",
-  },
-};
 
 
 export default function Home() {
