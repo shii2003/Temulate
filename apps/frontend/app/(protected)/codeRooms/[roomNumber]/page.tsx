@@ -14,7 +14,7 @@ const page: React.FC<PageProps> = ({ params }) => {
 
     return (
         <div className='h-full overflow-hidden w-full '>
-            <Workspace />
+            <Workspace roomId={params.roomNumber} />
         </div>
     )
 }

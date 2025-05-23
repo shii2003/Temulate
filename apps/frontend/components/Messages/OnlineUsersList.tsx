@@ -3,7 +3,15 @@ import OnlineUserInfo from './OnlineUserInfo';
 import { MdOutlineNavigateBefore } from "react-icons/md";
 import { MdOutlineNavigateNext } from "react-icons/md";
 
-type OnlineUsersListProps = {};
+interface User {
+    id: number;
+    username: string;
+    email?: string;
+}
+
+type OnlineUsersListProps = {
+    onlineUsers: User[],
+};
 
 const users = [
     { id: 1, name: 'Masaooooooooooo', email: 'masao@example.com', imageSrc: '/masao.jpg' },
@@ -23,7 +31,7 @@ const users = [
 
 ];
 
-const OnlineUsersList: React.FC<OnlineUsersListProps> = () => {
+const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
 
     const [currentIndex, setCurrentIndex] = useState(0);
 

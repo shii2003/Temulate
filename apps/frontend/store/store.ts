@@ -1,6 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authReducer from "./features/auth/authSlice";
 import roomReducer from "./features/room/roomSlice";
+import chatReducer from "./features/chat/chatSlice";
 import { persistReducer, persistStore } from "redux-persist";
 
 const createNoopStorage = () => {
@@ -25,22 +26,30 @@ if (typeof window !== 'undefined') {
     storage = createNoopStorage();
 }
 
+// only persist user field
 const authPersistConfig = {
     key: 'auth',
     storage,
-    whitelist: ['user'] // only persist user field
+    whitelist: ['user']
 };
 
-
+// only persist currentRoom field
 const roomPersistConfig = {
     key: 'room',
     storage,
-    whitelist: ['currentRoom'] // only persist currentRoom field
+    whitelist: ['currentRoom']
+};
+
+const chatPersistConfig = {
+    key: 'chat',
+    storage,
+    whitelist: ['messages'],
 };
 
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
     room: persistReducer(roomPersistConfig, roomReducer),
+    chat: persistReducer(chatPersistConfig, chatReducer),
 })
 
 export const store = configureStore({

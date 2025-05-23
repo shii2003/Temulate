@@ -40,6 +40,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
                 if (message.type === "error") {
                     toast.dismiss(toastId);
                     toast.error(message.payload.message);
+                    setError(message.payload.message);
                     dispatch(setLoading(false));
 
                 } else if (message.type === "room-created") {
@@ -59,6 +60,8 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
     }, [ws, toastId, dispatch, onClose]);
 
     const handleCreateRoom = () => {
+
+        setError(null);
 
         if (!user) {
             toast.error("Please login to join a room");
@@ -123,6 +126,11 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
                     <p className='text-xs text-neutral-500 mt-2'>
                         the room name should not match any other room's name
                     </p>
+                    {error && (
+                        <div className='text-red-500 text-sm mt-2'>
+                            {error}
+                        </div>
+                    )}
 
                 </div>
 
@@ -134,11 +142,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
                         {isLoading ? "Creating..." : "Create Room"}
 
                     </button>
-                    {/* {error && (
-                        <div className='text-red-500 text-sm mt-2'>
-                            {error}
-                        </div>
-                    )} */}
+
                 </div>
             </div>
         </div>

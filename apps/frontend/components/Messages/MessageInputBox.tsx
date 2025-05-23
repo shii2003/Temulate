@@ -3,10 +3,10 @@ import React, { useState } from 'react';
 import { BsFillSendFill } from "react-icons/bs";
 
 type MessageInputBoxProps = {
-
+    roomId: number
 };
 
-const MessageInputBox: React.FC<MessageInputBoxProps> = () => {
+const MessageInputBox: React.FC<MessageInputBoxProps> = ({ roomId }) => {
 
     const [message, setMessage] = useState<string>("");
     // const { sendChatMessage } = useWebSocket();
