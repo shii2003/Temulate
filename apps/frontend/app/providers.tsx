@@ -1,4 +1,4 @@
-import { WebSocketProvider } from '@/context/WebSocketContext';
+import { WebSocketProvider } from '@/components/providers/WebSocketProvider';
 import { persistor, store } from '@/store/store';
 import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';

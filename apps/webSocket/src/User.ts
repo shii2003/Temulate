@@ -26,6 +26,7 @@ export class User {
         this.ws.on("message", async (data) => {
             try {
                 const parsedData = JSON.parse(data.toString());
+
                 switch (parsedData.type) {
                     case CREATE_ROOM:
                         console.log(`create-room request received from ${this.username} ${this.id}`)
@@ -164,10 +165,12 @@ export class User {
                     type: 'room-joined',
                     payload: {
                         roomId: room.id,
-                        roomName: room.name
+                        roomName: room.name,
                     }
                 }
             );
+
+            console.log(`user: ${this.username} joined room ${room.id}`)
 
             RoomManager.getInstance().broadcastMessage(
                 room.id,

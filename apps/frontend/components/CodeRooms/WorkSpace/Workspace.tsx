@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Split from '@uiw/react-split';
 import InteractiveEditor from './CodeEditor/InteractiveEditor';
 import Terminal from './CodeEditor/Terminal';
@@ -8,14 +8,19 @@ import DrawingCanvas from '@/components/GameRoom/DrawingCanvas';
 import { useWebSocket } from '@/hooks/useWebSocket';
 
 interface WorkspaceProps {
-    roomId: number
+    roomId: number;
 }
 const Workspace: React.FC<WorkspaceProps> = ({ roomId }) => {
 
-    const ws = useWebSocket("ws://localhost:8080", roomId);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const { leaveRoom, sendMessage, isConnected } = useWebSocket(roomId);
 
-
+    useEffect(() => {
+        return () => {
+            if (!window.location.pathname.startsWith('/codeRooms')) {
+                leaveRoom();
+            }
+        }
+    }, [roomId, leaveRoom])
     return (
 
         <div className='flex w-full h-full  max-w-7xl mx-auto'>

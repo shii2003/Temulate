@@ -1,4 +1,4 @@
-export type OutgoingMessage = {
+export type messagesFromWebSocketServer = {
     type: "room-created",
     payload: {
         roomId: number,
@@ -47,8 +47,14 @@ export type OutgoingMessage = {
     }
 }
 
-export type IncomingMessage =
-    | { type: 'create-room'; payload: { name: string } }
-    | { type: 'join-room'; payload: { roomName: string } }
-    | { type: 'leave-room'; payload: {} }
-    | { type: 'send-message'; payload: { content: string } };
+export type messagesToWebSocketServer = {
+    type: 'join-room' | 'leave-room' | 'send-message' | 'create-room';
+    payload: {
+        roomId?: number;
+        roomName?: string;
+        content?: string;
+        userId?: number;
+        username?: string;
+    };
+}
+

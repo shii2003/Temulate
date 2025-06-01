@@ -21,8 +21,8 @@ const page: React.FC<pageProps> = () => {
                     roomId={4}
                     roomName='Room1'
                 />
-                <CreateAndEnterRoom />
-                <CreateNewRoomCard />
+                {/* <CreateAndEnterRoom />
+                <CreateNewRoomCard /> */}
                 <JoinRoomCard />
             </div>
         </div>

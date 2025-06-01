@@ -1,20 +1,19 @@
 "use client";
 import Workspace from '@/components/CodeRooms/WorkSpace/Workspace';
-import React from 'react';
+import { useParams } from 'next/navigation';
+import React, { use } from 'react';
 
 interface PageProps {
-    params: {
-        roomNumber: string;
-    }
+
 }
 
-const page: React.FC<PageProps> = ({ params }) => {
+const page: React.FC<PageProps> = () => {
 
-
-
+    const params = useParams<{ roomNumber: string }>();
+    const numericRoomNumber = Number(params.roomNumber);
     return (
         <div className='h-full overflow-hidden w-full '>
-            <Workspace roomId={params.roomNumber} />
+            <Workspace roomId={numericRoomNumber} />
         </div>
     )
 }
