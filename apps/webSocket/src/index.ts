@@ -10,7 +10,14 @@ import { User } from "./User";
 const PORT = 8080;
 const wss = new WebSocketServer({ port: PORT });
 
-wss.on('connection', async (ws: WebSocket, req) => {
+const HEARTBEAT_INTERVAL = 30000;
+
+interface ExtendedWebSocket extends WebSocket {
+    isAlive?: boolean;
+    user?: User;
+}
+
+wss.on('connection', async (ws: ExtendedWebSocket, req) => {
     try {
         const cookies = parse(req.headers.cookie || "");
         const token = cookies.accessToken;
@@ -45,7 +52,13 @@ wss.on('connection', async (ws: WebSocket, req) => {
             return;
         }
 
-        console.log(`new User connected: ${currentUser.username}, ${currentUser.id}`)
+        console.log(`new User connected: ${currentUser.username}, ${currentUser.id}`);
+
+        ws.isAlive = true;
+        ws.on('pong', () => {
+            ws.isAlive = true;
+        });
+
 
         let user = new User(ws, currentUser.id, currentUser.username);
 
@@ -61,6 +74,20 @@ wss.on('connection', async (ws: WebSocket, req) => {
     }
 });
 
-console.log(`WebSocket server running on ws://localhost:${PORT}`);
+setInterval(() => {
+    wss.clients.forEach((ws) => {
 
+        const extWs = ws as ExtendedWebSocket;
+
+        if (!extWs.isAlive) {
+            console.log("Terminating dead connections");
+            return extWs.terminate();
+        }
+
+        extWs.isAlive = false;
+        extWs.ping();
+    })
+}, HEARTBEAT_INTERVAL);
+
+console.log(`WebSocket server running on ws://localhost:${PORT}`);
 

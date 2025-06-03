@@ -1,6 +1,7 @@
 "use client";
-import { useWebSocket } from '@/hooks/useWebSocket';
-import { setLoading } from '@/store/features/room/roomSlice';
+
+import { useWebSocket } from '@/components/providers/WebSocketProvider';
+import { setRoomError } from '@/store/features/room/roomSlice';
 import { RootState } from '@/store/store';
 import React, { useEffect, useState } from 'react';
 import { IoClose } from 'react-icons/io5';
@@ -13,31 +14,56 @@ type JoinRoomModalProps = {
 };
 
 const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
+
+    const { createRoom, isConnected } = useWebSocket();
     const [roomName, setRoomName] = useState<string>("");
-    const { joinRoom, error, setError } = useWebSocket();
-    const { isLoading } = useSelector((state: RootState) => state.room);
     const dispatch = useDispatch();
+    const roomError = useSelector((state: RootState) => state.room.error);
 
     useEffect(() => {
         if (isOpen) {
+            dispatch(setRoomError(null));
             setRoomName("");
-            setError(null);
-        } else {
-            dispatch(setLoading(false));
         }
-    }, [isOpen, setError, dispatch]);
+    }, [isOpen, dispatch]);
 
-    const handleJoinRoom = async () => {
-        setError(null);
-        const success = await joinRoom(roomName);
-        if (success) {
-            onClose();
+    useEffect(() => {
+        if (roomError) {
+            toast.error('Room Creation Failed', {
+                description: roomError,
+                action: {
+                    label: 'Dismiss',
+                    onClick: () => dispatch(setRoomError(null))
+                },
+            });
         }
+    }, [roomError, dispatch]);
+
+
+
+    const handleCreate = () => {
+        if (!roomName.trim()) {
+            toast.error('Invalid Room Name', {
+                description: 'Room name cannot be empty.',
+            });
+            return;
+        }
+        if (roomName.trim().length > 20) {
+            toast.error("Room name must not be more than 20 characters");
+            return;
+        }
+        if (!isConnected) {
+            toast.error('Connection Error', {
+                description: 'WebSocket is not connected. Please try again.',
+            });
+            return;
+        }
+        createRoom(roomName);
+        onClose();
     };
 
     const handleClose = () => {
-        dispatch(setLoading(false));
-        setError(null);
+
         onClose();
     };
 
@@ -49,11 +75,12 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
                 <button
                     className='absolute top-2 right-2'
                     onClick={handleClose}
-                    disabled={isLoading}
+                // disabled={isLoading}
                 >
                     <IoClose
                         size={24}
-                        className={`${isLoading ? 'text-gray-600' : 'text-red-500 hover:text-red-400'}`}
+                        className='text-gray-600 hover:text-red-400'
+                    // className={`${isLoading ? 'text-gray-600' : 'text-red-500 hover:text-red-400'}`}
                     />
                 </button>
 
@@ -64,22 +91,24 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
                         value={roomName}
                         onChange={(e) => setRoomName(e.target.value)}
                         placeholder='Enter room name'
-                        className='w-full px-3 py-2 rounded-md bg-neutral-700 text-white outline-none border-2 border-neutral-800 focus:border-indigo-400'
-                        disabled={isLoading}
+                    // className='w-full px-3 py-2 rounded-md bg-neutral-700 text-white outline-none border-2 border-neutral-800 focus:border-indigo-400'
+                    // disabled={isLoading}
                     />
                     <p className='text-xs text-neutral-500 mt-2'>
                         Do not add spaces to the name.
                     </p>
-                    {error && <p className='text-red-500'>{error}</p>}
+                    {/* {error && <p className='text-red-500'>{error}</p>} */}
                 </div>
                 <div className='mt-3 mb-4 flex justify-end'>
                     <button
-                        onClick={handleJoinRoom}
-                        className={`px-4 py-2 rounded-md bg-indigo-400 font-semibold tracking-wider ${isLoading ? "opacity-50 cursor-not-allowed" : ""
-                            }`}
-                        disabled={isLoading || !roomName.trim()}
+                        onClick={handleCreate}
+                        // className={`px-4 py-2 rounded-md bg-indigo-400 font-semibold tracking-wider ${isLoading ? "opacity-50 cursor-not-allowed" : ""
+                        //     }`}
+                        className='px-4 py-2 rounded-md bg-indigo-400 font-semibold tracking-wider'
+                        disabled={!isConnected || !roomName.trim()}
                     >
-                        {isLoading ? "Joining..." : "Join Room"}
+                        Join
+                        {/* {isLoading ? "Joining..." : "Join Room"} */}
                     </button>
                 </div>
             </div>

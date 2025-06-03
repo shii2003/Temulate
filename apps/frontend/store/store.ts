@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authReducer from "./features/auth/authSlice";
 import roomReducer from "./features/room/roomSlice";
 import chatReducer from "./features/chat/chatSlice";
-import { persistReducer, persistStore } from "redux-persist";
+import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from "redux-persist";
 
 const createNoopStorage = () => {
     return {
@@ -26,31 +26,18 @@ if (typeof window !== 'undefined') {
     storage = createNoopStorage();
 }
 
-// only persist user field
+
 const authPersistConfig = {
     key: 'auth',
     storage,
     whitelist: ['user']
 };
 
-// only persist currentRoom field
-const roomPersistConfig = {
-    key: 'room',
-    storage,
-    whitelist: ['currentRoom']
-};
-
-const chatPersistConfig = {
-    key: 'chat',
-    storage,
-    whitelist: ['messages'],
-};
-
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
-    room: persistReducer(roomPersistConfig, roomReducer),
-    chat: persistReducer(chatPersistConfig, chatReducer),
-})
+    room: roomReducer,
+    chat: chatReducer,
+});
 
 export const store = configureStore({
     reducer: rootReducer,
@@ -58,14 +45,14 @@ export const store = configureStore({
         getDefaultMiddleware({
             serializableCheck: {
 
-                ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
+                ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
             },
         }),
 });
-
 
 export const persistor = persistStore(store);
 
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
+
 

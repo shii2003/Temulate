@@ -1,41 +1,28 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface RoomState {
-    currentRoom: {
-        id: number | null;
-        name: string | null;
-    };
-    isLoading: boolean;
+    currentRoom: { id: number; name: string } | null;
     error: string | null;
 }
 
 const initialState: RoomState = {
-    currentRoom: {
-        id: null,
-        name: null,
-    },
-    isLoading: false,
+    currentRoom: null,
     error: null,
 };
 
-export const roomSlice = createSlice({
-    name: "room",
+const roomSlice = createSlice({
+    name: 'room',
     initialState,
     reducers: {
-        setRoom: (state, action: PayloadAction<{ id: number; name: string }>) => {
+        setRoom: (state, action: PayloadAction<{ id: number; name: string } | null>) => {
             state.currentRoom = action.payload;
+            state.error = null; // Clear error on successful room set
         },
-        setLoading: (state, action: PayloadAction<boolean>) => {
-            state.isLoading = action.payload;
-        },
-        setError: (state, action: PayloadAction<string | null>) => {
+        setRoomError: (state, action: PayloadAction<string | null>) => {
             state.error = action.payload;
-        },
-        leaveRoom: (state) => {
-            state.currentRoom = { id: null, name: null };
         },
     },
 });
 
-export const { setRoom, setLoading, setError, leaveRoom } = roomSlice.actions;
+export const { setRoom, setRoomError } = roomSlice.actions;
 export default roomSlice.reducer;

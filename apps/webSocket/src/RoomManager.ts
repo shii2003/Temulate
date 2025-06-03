@@ -17,7 +17,11 @@ export class RoomManager {
     }
 
     addRoom(roomId: number, user: User) {
-        this.rooms.set(roomId, [user]);
+        if (!this.rooms.has(roomId)) {
+            this.rooms.set(roomId, [user]);
+        } else {
+            this.rooms.get(roomId)?.push(user);
+        }
     }
 
     async addUserToRoom(roomId: number, user: User) {
@@ -34,14 +38,22 @@ export class RoomManager {
         this.rooms.set(roomId, room);
     }
     removeUser(user: User, roomId: number) {
-        if (!this.rooms.has(roomId)) return;
-        this.rooms.set(roomId, this.rooms.get(roomId)!.filter((u) => u.id !== user.id));
+        const users = this.rooms.get(roomId);
+        if (!users) return;
+
+        const updatedUsers = users.filter((u) => u.id !== user.id);
+        if (updatedUsers.length === 0) {
+            this.rooms.delete(roomId);
+            console.log(`Room ${roomId} has been deleted because it's empty`);
+        } else {
+            this.rooms.set(roomId, updatedUsers);
+        }
     }
     broadcastMessage(roomId: number, message: OutgoingMessage, excludeUser?: User) {
-        const room = this.rooms.get(roomId);
-        if (!room) return;
+        const users = this.rooms.get(roomId);
+        if (!users) return;
 
-        room.forEach((user) => {
+        users.forEach((user) => {
             if (excludeUser && user.id === excludeUser.id) return;
             user.send(message);
         });

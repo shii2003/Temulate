@@ -274,7 +274,14 @@ export class User {
 
     destroy() {
         if (this.roomId) {
-            RoomManager.getInstance().removeUser(this, this.roomId)
+            RoomManager.getInstance().broadcastMessage(this.roomId, {
+                type: 'user-left',
+                payload: {
+                    userId: this.id,
+                    username: this.username,
+                }
+            }, this);
+            RoomManager.getInstance().removeUser(this, this.roomId);
         }
     }
 
