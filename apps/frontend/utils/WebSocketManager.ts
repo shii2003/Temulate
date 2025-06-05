@@ -1,60 +1,105 @@
-import { toast } from "sonner";
+type MessageHandler = (data: any) => void;
 
-class WebSocketManager {
+export class WebSocketManager {
     private static instance: WebSocketManager;
     private socket: WebSocket | null = null;
+    private handlers: Record<string, MessageHandler[]> = {};
+    private reconnectAttempts = 0;
+    private maxReconnectAttempts = 5;
+    private reconnectDelay = 1000;
 
-    private constructor() { };
+    private constructor() { }
 
-    connect(url: string) {
-        if (this.socket) {
-            return;
-        }
-        this.socket = new WebSocket(url);
-
-        this.socket.onopen = () => {
-            console.log('WebSocket connection has been established.');
-        }
-
-        this.socket.onerror = (err) => {
-            console.log('WebSocket error:', err);
-        }
-
-        this.socket.onclose = () => {
-            this.socket = null;
-            console.log("WebSocket connection closed.");
-        };
-    }
-
-    static getInstance(): WebSocketManager {
-        if (!this.instance) {
-            this.instance = new WebSocketManager();
+    public static getInstance(): WebSocketManager {
+        if (!WebSocketManager.instance) {
+            WebSocketManager.instance = new WebSocketManager();
         }
         return WebSocketManager.instance;
     }
 
-    //TODO: add types here probabaly the outgoing types.
-    send(data: any) {
-        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-            this.socket.send(data);
-        } else {
-            toast.error("Webocket not connected.");
-        }
-    }
+    public connect(url: string): void {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) return;
 
-    onMessage(callback: (data: any) => void) {
-        if (!this.socket) return;
+        this.socket = new WebSocket(url);
+
+        this.socket.onopen = () => {
+            console.log("WebSocket connected");
+            this.reconnectAttempts = 0;
+
+        };
+
+        this.socket.onclose = (event) => {
+            console.log("WebSocket closed", event);
+            this.socket = null;
+
+            // Attempt to reconnect if not a normal closure
+            if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
+                setTimeout(() => {
+                    this.reconnectAttempts++;
+                    console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+                    this.connect(url);
+                }, this.reconnectDelay * this.reconnectAttempts);
+            }
+
+
+        };
+
+        this.socket.onerror = (error) => {
+            console.error("WebSocket error", error);
+        };
+
         this.socket.onmessage = (event) => {
-            const message = JSON.parse(event.data);
-            callback(message);
+            try {
+                const parsed = JSON.parse(event.data);
+                const { type, payload } = parsed;
+
+                if (this.handlers[type]) {
+                    this.handlers[type].forEach((handler) => handler(payload));
+                } else {
+                    console.warn("Unhandled WebSocket event:", type);
+                }
+            } catch (err) {
+                console.error("Invalid WebSocket message:", event.data);
+            }
         };
     }
 
-    close() {
-        this.socket?.close();
-        this.socket = null;
+    public send(type: string, payload: any): void {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            const message = JSON.stringify({ type, payload });
+            this.socket.send(message);
+        } else {
+            console.warn("WebSocket is not open. Cannot send message.");
+        }
+    }
+
+    public on(event: string, handler: MessageHandler): void {
+        if (!this.handlers[event]) {
+            this.handlers[event] = [];
+        }
+        this.handlers[event].push(handler);
+    }
+
+    public off(event: string, handler: MessageHandler): void {
+        if (this.handlers[event]) {
+            this.handlers[event] = this.handlers[event].filter((h) => h !== handler);
+        }
+    }
+
+    public isConnected(): boolean {
+        return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
+    }
+
+    public getConnectionState(): number | null {
+        return this.socket?.readyState || null;
+    }
+
+    public disconnect(): void {
+        if (this.socket) {
+            this.socket.close(1000, 'Intentional disconnect');
+            this.socket = null;
+        }
+
+        this.handlers = {};
     }
 }
-
-const webSocketManager = WebSocketManager.getInstance();
-export default webSocketManager;

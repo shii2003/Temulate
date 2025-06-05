@@ -18,11 +18,11 @@ const users = [
 
 const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
 
-    const onlineUsers = useSelector((state: RootState) => state.chat.onlineUses);
+
 
     return (
         <div className='flex bg-neutral-800  flex-col h-full w-full border-r border-neutral-700'>
-            <OnlineUsersList onlineUsers={onlineUsers} />
+            {/* <OnlineUsersList onlineUsers={onlineUsers} /> */}
             <div className='flex-1 overflow-y-auto mb-1 mt-2'>
                 <GroupChatBox />
             </div>

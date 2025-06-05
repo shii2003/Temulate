@@ -1,4 +1,3 @@
-import { WebSocketProvider } from '@/components/providers/WebSocketProvider';
 import { persistor, store } from '@/store/store';
 import React, { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
@@ -16,9 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
         return (
             <Provider store={store}>
-                <WebSocketProvider>
-                    {children}
-                </WebSocketProvider>
+                {children}
             </Provider>
         );
     }
@@ -26,9 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <Provider store={store}>
             <PersistGate loading={null} persistor={persistor}>
-                <WebSocketProvider>
-                    {children}
-                </WebSocketProvider>
+                {children}
             </PersistGate>
         </Provider>
     );

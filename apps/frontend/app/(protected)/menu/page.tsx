@@ -23,7 +23,7 @@ const page: React.FC<pageProps> = () => {
                 />
                 {/* <CreateAndEnterRoom /> */}
                 <CreateNewRoomCard />
-                {/* <JoinRoomCard /> */}
+                <JoinRoomCard />
             </div>
         </div>
     )

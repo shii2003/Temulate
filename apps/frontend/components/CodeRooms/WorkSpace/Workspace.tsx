@@ -12,15 +12,15 @@ interface WorkspaceProps {
 }
 const Workspace: React.FC<WorkspaceProps> = ({ roomId }) => {
 
-    const { leaveRoom, sendMessage, isConnected } = useWebSocket(roomId);
+
 
     useEffect(() => {
         return () => {
             if (!window.location.pathname.startsWith('/codeRooms')) {
-                leaveRoom();
+
             }
         }
-    }, [roomId, leaveRoom])
+    }, [roomId,])
     return (
 
         <div className='flex w-full h-full  max-w-7xl mx-auto'>
