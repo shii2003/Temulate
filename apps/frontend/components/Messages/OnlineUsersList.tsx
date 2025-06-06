@@ -3,10 +3,9 @@ import OnlineUserInfo from './OnlineUserInfo';
 import { MdOutlineNavigateBefore } from "react-icons/md";
 import { MdOutlineNavigateNext } from "react-icons/md";
 
-interface User {
+export interface User {
     id: number;
-    username: string;
-    email?: string;
+    username: string
 }
 
 type OnlineUsersListProps = {
@@ -40,7 +39,7 @@ const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
     }
 
     const handleNext = () => {
-        setCurrentIndex((prev) => Math.min(prev + 1, users.length - 1));
+        setCurrentIndex((prev) => Math.min(prev + 1, onlineUsers.length - 1));
     }
 
     return (
@@ -48,7 +47,7 @@ const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
 
             <div className='flex items-center  text-sm h-[3rem] px-4 py-1 gap-2 w-full text-indigo-300 font-medium'>
                 <p className='text-neutral-500'>Online Users: </p>
-                <p className='px-4 py-1 rounded-2xl shadow-sm shadow-neutral-600 font-semibold text-base'>{users.length}</p>
+                <p className='px-4 py-1 rounded-2xl shadow-sm shadow-neutral-600 font-semibold text-base'>{onlineUsers.length}</p>
             </div>
             <div className='flex flex-grow relative items-center gap-2 w-full'>
                 <button
@@ -68,11 +67,11 @@ const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
                             transform: `translateX(-${currentIndex * 100}px)`
                         }}
                     >
-                        {users.map((user) => (
+                        {onlineUsers.map((user) => (
                             <OnlineUserInfo
                                 key={user.id}
-                                username={user.name}
-                                email={user.email}
+                                username={user.username}
+                            // email={user.email}
                             />
                         ))}
                     </div>

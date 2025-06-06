@@ -84,6 +84,18 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().off("room-joined", callback);
     };
 
+    const offNewMessage = (callback: (data: any) => void) => {
+        WebSocketManager.getInstance().off("new-message", callback);
+    };
+
+    const offUserJoined = (callback: (data: any) => void) => {
+        WebSocketManager.getInstance().off("user-joined", callback);
+    };
+
+    const offUserLeft = (callback: (data: any) => void) => {
+        WebSocketManager.getInstance().off("user-left", callback);
+    };
+
     const offError = (callback: (data: any) => void) => {
         WebSocketManager.getInstance().off("error", callback);
     };
@@ -114,6 +126,9 @@ export const useWebSocket = () => {
 
         offRoomCreated,
         offRoomJoined,
+        offUserLeft,
+        offNewMessage,
+        offUserJoined,
         offError,
 
         isConnected,

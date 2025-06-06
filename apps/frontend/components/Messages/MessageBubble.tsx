@@ -1,7 +1,7 @@
 import React from 'react';
 
 type SentMessageBubbleProps = {
-    username?: string,
+    username: string,
     message: string,
     time: string,
     messageType: 'sent' | 'received';
@@ -15,7 +15,7 @@ const truncateUsername = (username: string, maxLength: number) => {
     return username;
 }
 
-const SentMessageBubble: React.FC<SentMessageBubbleProps> = ({ username, message, time, messageType }) => {
+const SentMessageBubble: React.FC<SentMessageBubbleProps> = ({ message, messageType, time, username, }) => {
     const isSent = messageType == 'sent';
 
     return (
@@ -25,7 +25,7 @@ const SentMessageBubble: React.FC<SentMessageBubbleProps> = ({ username, message
             ${isSent ? 'rounded-l-lg ' : 'rounded-r-lg '} break-words`}
         >
             <p className={`text-sm w-full ${isSent ? 'text-indigo-300' : "text-yellow-400"}`}>
-                {isSent ? "You" : "User"}
+                {username}
             </p>
             <p className={`${isSent ? 'text-neutral-300' : 'text-white'}`}>{message}</p>
             <div className="flex items-center justify-end w-full">

@@ -1,18 +1,12 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import Split from '@uiw/react-split';
-import InteractiveEditor from './CodeEditor/InteractiveEditor';
-import Terminal from './CodeEditor/Terminal';
 import Lobby from './Lobby/Lobby';
 import DrawingCanvas from '@/components/GameRoom/DrawingCanvas';
-import { useWebSocket } from '@/hooks/useWebSocket';
 
 interface WorkspaceProps {
     roomId: number;
 }
 const Workspace: React.FC<WorkspaceProps> = ({ roomId }) => {
-
-
 
     useEffect(() => {
         return () => {

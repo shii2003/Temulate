@@ -1,5 +1,6 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authReducer from "./features/auth/authSlice";
+import messageReducer from "./features/message/messageSlice"
 import { persistReducer, persistStore, PURGE, REGISTER, REHYDRATE, FLUSH, PAUSE, PERSIST } from "redux-persist";
 
 const createNoopStorage = () => {
@@ -30,8 +31,14 @@ const authPersistConfig = {
     whitelist: ["user"],
 };
 
+const messagesPersistConfig = {
+    key: "messages",
+    storage,
+};
+
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
+    messages: persistReducer(messagesPersistConfig, messageReducer),
 });
 
 export const store = configureStore({

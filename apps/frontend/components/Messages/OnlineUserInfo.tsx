@@ -3,7 +3,7 @@ import Image from "next/image";
 
 type OnlineUserInfoProps = {
     username: string,
-    email: string
+    // email: string
 };
 
 const truncateUsername = (username: string, maxLength: number) => {
@@ -14,7 +14,7 @@ const truncateUsername = (username: string, maxLength: number) => {
     return username;
 }
 
-const OnlineUserInfo: React.FC<OnlineUserInfoProps> = ({ username, email }) => {
+const OnlineUserInfo: React.FC<OnlineUserInfoProps> = ({ username, }) => {
 
     return (
         <div className="flex flex-col items-center justify-center gap-1 px-2 py-1  ">
