@@ -1,6 +1,6 @@
 import { RootState } from "@/store/store";
 import { WebSocketManager } from "@/utils/WebSocketManager";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 
 const WEBSOCKET_URL = "ws://localhost:8080";
@@ -10,6 +10,7 @@ export const useWebSocket = () => {
     const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
 
     const user = useSelector((state: RootState) => state.auth.user);
+    const currentRoomIdRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (!user) return;
@@ -42,6 +43,9 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().send("leave-room", {});
     };
 
+    const sendGetRoomUsers = (roomId: number) => {
+        WebSocketManager.getInstance().send("get-room-users", { roomId })
+    }
     const sendMessage = (content: string) => {
         WebSocketManager.getInstance().send("send-message", { content });
     };
@@ -71,6 +75,9 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().on("new-message", callback);
     };
 
+    const onRoomUsers = (callback: (data: { users: { id: number; username: string }[] }) => void) => {
+        WebSocketManager.getInstance().on('room-users', callback)
+    }
     const onError = (callback: (data: { message: string }) => void) => {
         WebSocketManager.getInstance().on("error", callback);
     };
@@ -96,6 +103,10 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().off("user-left", callback);
     };
 
+    const offRoomUsers = (callback: (data: any) => void) => {
+        WebSocketManager.getInstance().off('room-users', callback);
+    };
+
     const offError = (callback: (data: any) => void) => {
         WebSocketManager.getInstance().off("error", callback);
     };
@@ -114,6 +125,7 @@ export const useWebSocket = () => {
         sendJoinRoom,
         sendLeaveRoom,
         sendMessage,
+        sendGetRoomUsers,
 
         // Event handlers
         onRoomCreated,
@@ -122,6 +134,7 @@ export const useWebSocket = () => {
         onUserJoined,
         onUserLeft,
         onNewMessage,
+        onRoomUsers,
         onError,
 
         offRoomCreated,
@@ -129,6 +142,7 @@ export const useWebSocket = () => {
         offUserLeft,
         offNewMessage,
         offUserJoined,
+        offRoomUsers,
         offError,
 
         isConnected,

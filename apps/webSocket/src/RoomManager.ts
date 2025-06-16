@@ -18,12 +18,18 @@ export class RoomManager {
 
     addRoom(roomId: number, user: User) {
         if (!this.rooms.has(roomId)) {
-            this.rooms.set(roomId, [user]);
+            this.createRoom(roomId, user);
         } else {
             this.rooms.get(roomId)?.push(user);
         }
     }
-
+    public createRoom(roomId: number, user: User) {
+        this.rooms.set(roomId, [user]);
+    }
+    getUsersInRoom(roomId: number): User[] | null {
+        const usersInRoom = this.rooms.get(roomId);
+        return usersInRoom || null;
+    }
     async addUserToRoom(roomId: number, user: User) {
         const room = this.rooms.get(roomId);
         if (!room) {

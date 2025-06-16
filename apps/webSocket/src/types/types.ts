@@ -1,3 +1,8 @@
+export type UserList = {
+    id: number,
+    username: string,
+}
+
 export type OutgoingMessage = {
     type: "room-created",
     payload: {
@@ -45,10 +50,17 @@ export type OutgoingMessage = {
     payload: {
         message: string
     }
+} | {
+    type: "room-users",
+    payload: {
+        users: UserList[],
+    }
 }
+
 
 export type IncomingMessage =
     | { type: 'create-room'; payload: { name: string } }
     | { type: 'join-room'; payload: { roomName: string } }
     | { type: 'leave-room'; payload: {} }
-    | { type: 'send-message'; payload: { content: string } };
+    | { type: 'send-message'; payload: { content: string } }
+    | { type: 'get-room-users'; payload: { roomId: number } };

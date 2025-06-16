@@ -8,6 +8,7 @@ export const CREATE_ROOM = 'create-room';
 export const JOIN_ROOM = 'join-room';
 export const LEAVE_ROOM = 'leave-room';
 export const SEND_MESSAGE = 'send-message';
+export const GET_ROOM_USERS = 'get-room-users';
 
 export class User {
     public id: number;
@@ -44,6 +45,14 @@ export class User {
                         console.log(`send-messasge request received from ${this.username} ${this.id}`)
                         await this.handleSendMessage(parsedData.payload.content);
                         break;
+                    case GET_ROOM_USERS:
+                        console.log(`get-room-users request received from ${this.username} ${this.username}`);
+                        if (!this.roomId) {
+                            console.log(`roomId is not available roomId: ${this.roomId}`)
+                        }
+                        else if (this.roomId) {
+                            await this.getRoomUsers(this.roomId);
+                        }
                     default:
                         console.warn("Unknown message type", parsedData.type);
                         this.send(
@@ -103,7 +112,7 @@ export class User {
                 },
             });
             console.log(`room created roomid: ${room.id} room name: ${room.name}`)
-            RoomManager.getInstance().addRoom(room.id, this);
+            RoomManager.getInstance().createRoom(room.id, this);
             this.roomId = room.id;
             console.log(`current room: ${this.roomId}`)
 
@@ -116,6 +125,22 @@ export class User {
                     }
                 }
             );
+
+            const usersInRoom = RoomManager.getInstance().getUsersInRoom(room.id);
+            if (usersInRoom) {
+                RoomManager.getInstance().broadcastMessage(
+                    room.id,
+                    {
+                        type: 'room-users',
+                        payload: {
+                            users: usersInRoom.map(user => ({
+                                id: user.id,
+                                username: user.username,
+                            }))
+                        }
+                    }
+                );
+            }
         } catch (error) {
             console.log("Error creating room:", error);
             this.send(
@@ -170,6 +195,35 @@ export class User {
                 }
             );
 
+            const usersInRoom = RoomManager.getInstance().getUsersInRoom(room.id);
+            if (usersInRoom) {
+
+                RoomManager.getInstance().broadcastMessage(
+                    room.id,
+                    {
+                        type: 'room-users',
+                        payload: {
+                            users: usersInRoom.map(user => ({
+                                id: user.id,
+                                username: user.username,
+                            }))
+                        }
+                    },
+                    this
+                )
+
+                this.send({
+                    type: 'room-users',
+                    payload: {
+                        users: usersInRoom.map(user => ({
+                            id: user.id,
+                            username: user.username,
+                        }))
+                    }
+                })
+            }
+
+
             console.log(`user: ${this.username} joined room ${room.id}`)
 
             RoomManager.getInstance().broadcastMessage(
@@ -216,10 +270,23 @@ export class User {
                         userId: this.id,
                         username: this.username
                     }
-                },
-                this
+                }
             );
-
+            const usersInRoom = RoomManager.getInstance().getUsersInRoom(roomId);
+            if (usersInRoom) {
+                RoomManager.getInstance().broadcastMessage(
+                    roomId,
+                    {
+                        type: 'room-users',
+                        payload: {
+                            users: usersInRoom.map(user => ({
+                                id: user.id,
+                                username: user.username,
+                            }))
+                        }
+                    }
+                );
+            }
         } else {
             this.send(
                 {
@@ -258,7 +325,7 @@ export class User {
                     },
                 }
             );
-            console.log(`user: ${this.username} sent the message successfully ${message}`)
+            console.log(`user: ${this.username} sent the message successfully ${content}`)
         } catch (error) {
             this.send(
                 {
@@ -272,9 +339,51 @@ export class User {
 
     }
 
+    private async getRoomUsers(roomId: number) {
+        try {
+            if (!roomId) {
+                this.send({
+                    type: 'error',
+                    payload: {
+                        message: 'userId is not given'
+                    }
+                })
+                return;
+            }
+            const users = RoomManager.getInstance().getUsersInRoom(roomId);
+
+            if (users) {
+                this.send(
+                    {
+                        type: 'room-users',
+                        payload: {
+                            users: users.map(user => ({
+                                id: user.id,
+                                username: user.username,
+                            }))
+                        }
+                    }
+                )
+                return;
+            }
+            if (!users) return null;
+
+        } catch (error) {
+            this.send(
+                {
+                    type: 'error',
+                    payload: {
+                        message: "Not currently in a room"
+                    }
+                }
+            )
+        }
+    }
+
     destroy() {
         if (this.roomId) {
-            RoomManager.getInstance().broadcastMessage(this.roomId, {
+            const roomId = this.roomId;
+            RoomManager.getInstance().broadcastMessage(roomId, {
                 type: 'user-left',
                 payload: {
                     userId: this.id,
@@ -282,6 +391,22 @@ export class User {
                 }
             }, this);
             RoomManager.getInstance().removeUser(this, this.roomId);
+
+            const usersInRoom = RoomManager.getInstance().getUsersInRoom(roomId);
+            if (usersInRoom) {
+                RoomManager.getInstance().broadcastMessage(
+                    roomId,
+                    {
+                        type: 'room-users',
+                        payload: {
+                            users: usersInRoom.map(user => ({
+                                id: user.id,
+                                username: user.username,
+                            }))
+                        }
+                    }
+                );
+            }
         }
     }
 

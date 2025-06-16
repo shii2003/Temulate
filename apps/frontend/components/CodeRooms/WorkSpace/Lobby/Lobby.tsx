@@ -6,10 +6,20 @@ import { addMessage } from '@/store/features/message/messageSlice';
 import { RootState } from '@/store/store';
 import React, { useEffect, useRef, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'sonner';
 
 type LobbyProps = {
     roomId: number;
 };
+
+export type userListType = {
+    id: number;
+    username: string;
+}
+
+export type CurrentRoomUserList = {
+    users: userListType[];
+}
 
 const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
 
@@ -21,7 +31,14 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
     const prevMessageCountRef = useRef(0);
     const [isNearBottom, setIsNearBottom] = useState(true);
 
-    const { onNewMessage, offNewMessage, onUserJoined, offUserJoined, onUserLeft, offUserLeft } = useWebSocket();
+    const { sendGetRoomUsers, onNewMessage, offNewMessage, onUserJoined, offUserJoined, onUserLeft, offUserLeft, onRoomUsers, offRoomUsers } = useWebSocket();
+
+    useEffect(() => {
+        if (user) {
+            setOnlineUsers([{ id: user.id, username: user.username }])
+        }
+
+    }, [user, roomId])
 
     useEffect(() => {
         const handleNewMessage = (data: { userId: number, username: string, content: string }) => {
@@ -36,26 +53,36 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
 
         const handleUserJoined = (data: { user: { id: number; username: string } }) => {
             setOnlineUsers(prev => {
-
                 if (prev.some(u => u.id === data.user.id)) return prev;
                 return [...prev, { id: data.user.id, username: data.user.username }];
             });
+
+            if (user && data.user.id !== user.id) {
+                toast.success(`New user ${data.user.username} joined.`);
+            }
+        };
+
+        const handleRoomUsers = (data: { users: { id: number; username: string }[] }) => {
+            setOnlineUsers(data.users);
         };
 
         const handleUserLeft = (data: { userId: number; username: string }) => {
             setOnlineUsers(prev => prev.filter(user => user.id !== data.userId));
+            toast.info(`User ${data.username} left the room.`);
         };
 
         onNewMessage(handleNewMessage);
         onUserJoined(handleUserJoined);
         onUserLeft(handleUserLeft);
+        onRoomUsers(handleRoomUsers);
 
         return () => {
             offNewMessage(handleNewMessage);
             offUserJoined(handleUserJoined);
             offUserLeft(handleUserLeft);
+            offRoomUsers(handleRoomUsers);
         };
-    }, [roomId, dispatch, onNewMessage, offNewMessage, onUserJoined, offUserJoined, onUserLeft, offUserLeft])
+    }, [roomId, dispatch, onNewMessage, offNewMessage, onUserJoined, offUserJoined, onUserLeft, offUserLeft, onRoomUsers, offRoomUsers])
 
     useEffect(() => {
         const chatContainer = chatContainerRef.current;
@@ -109,3 +136,4 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
     )
 }
 export default Lobby;
+
