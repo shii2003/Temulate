@@ -22,9 +22,10 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  ownedRooms  Room[]     @relation("OwnedRooms")
-  joinedRooms RoomUser[]
-  Message     Message[]
+  ownedRooms     Room[]          @relation("OwnedRooms")
+  joinedRooms    RoomUser[]
+  Message        Message[]
+  DrawingActions DrawingAction[]
 }
 
 model Room {
@@ -34,9 +35,10 @@ model Room {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  owner   User       @relation("OwnedRooms", fields: [ownerId], references: [id], onDelete: Cascade)
-  members RoomUser[]
-  Message Message[]
+  owner          User            @relation("OwnedRooms", fields: [ownerId], references: [id], onDelete: Cascade)
+  members        RoomUser[]
+  Message        Message[]
+  DrawingActions DrawingAction[]
 }
 
 model RoomUser {
@@ -60,4 +62,19 @@ model Message {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+}
+
+model DrawingAction {
+  id        Int      @id @default(autoincrement())
+  roomId    Int
+  userId    Int
+  type      String
+  x         Float?
+  y         Float?
+  color     String?
+  width     Float?
+  timestamp DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
