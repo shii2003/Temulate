@@ -1,6 +1,9 @@
+'use client';
+import { RootState } from '@/store/store';
 import React from 'react';
 import { CgProfile } from "react-icons/cg";
 import { FiEdit2 } from "react-icons/fi";
+import { useSelector } from 'react-redux';
 
 type UserInformationProps = {
 
@@ -8,21 +11,11 @@ type UserInformationProps = {
 
 const UserInformation: React.FC<UserInformationProps> = () => {
 
+    const user = useSelector((state: RootState) => state.auth.user)
+
     return (
-        <div className=' px-4 py-2 gap-4 flex border-2 border-neutral-800 rounded-md text-neutral-500'>
-            <div className='rounded-full h-12 w-12 border border-neutral-800 overflow-hidden flex justify-center items-center'>
-                <CgProfile className='h-11 w-11 text-neutral-700' />
-            </div>
-            <div className='gap-5'>
-                <div className='flex gap-2 justify-between'>
-                    Username
-
-                </div>
-                <div className='flex gap-2 justify-between  hover:underline'>
-                    email
-
-                </div>
-            </div>
+        <div className=' flex-col px-6 py-2 gap-4 flex border border-neutral-700 rounded-full text-neutral-500 font-normal tracking-wide bg-neutral-700/30'>
+            {user?.username}
         </div>
     )
 }
