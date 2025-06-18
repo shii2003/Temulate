@@ -9,6 +9,9 @@ export const JOIN_ROOM = 'join-room';
 export const LEAVE_ROOM = 'leave-room';
 export const SEND_MESSAGE = 'send-message';
 export const GET_ROOM_USERS = 'get-room-users';
+export const DRAW_START = 'draw-start';
+export const DRAW_MOVE = 'draw-move';
+export const DRAW_END = 'draw-end';
 
 export class User {
     public id: number;
@@ -30,29 +33,50 @@ export class User {
 
                 switch (parsedData.type) {
                     case CREATE_ROOM:
-                        console.log(`create-room request received from ${this.username} ${this.id}`)
+                        console.log(`create-room request received from ${this.username} ${this.id}.`);
                         await this.handleCreateRoom(parsedData.payload.name);
                         break;
                     case JOIN_ROOM:
-                        console.log(`join-room request received from ${this.username} ${this.id}`)
+                        console.log(`join-room request received from ${this.username} ${this.id}.`);
                         await this.handleJoinRoom(parsedData.payload.roomName);
                         break;
                     case LEAVE_ROOM:
-                        console.log(`leave-room request received from ${this.username} ${this.id}`)
+                        console.log(`leave-room request received from ${this.username} ${this.id}.`);
                         await this.handleLeaveRoom();
                         break;
                     case SEND_MESSAGE:
-                        console.log(`send-messasge request received from ${this.username} ${this.id}`)
+                        console.log(`send-messasge request received from ${this.username} ${this.id}.`);
                         await this.handleSendMessage(parsedData.payload.content);
                         break;
                     case GET_ROOM_USERS:
-                        console.log(`get-room-users request received from ${this.username} ${this.username}`);
+                        console.log(`get-room-users request received from ${this.username} ${this.username}.`);
                         if (!this.roomId) {
-                            console.log(`roomId is not available roomId: ${this.roomId}`)
+                            console.log(`roomId is not available roomId: ${this.roomId}.`);
                         }
                         else if (this.roomId) {
                             await this.getRoomUsers(this.roomId);
                         }
+                        break;
+                    case DRAW_START:
+                        console.log(`draw-start request received from user ${this.username}.`);
+                        await this.handleDrawStart(
+                            parsedData.payload.x,
+                            parsedData.payload.y,
+                            parsedData.payload.color,
+                            parsedData.payload.width,
+                        );
+                        break;
+                    case DRAW_MOVE:
+                        console.log(`draw-move request received from user ${this.id}.`);
+                        await this.handleDrawMove(
+                            parsedData.payload.x,
+                            parsedData.payload.y,
+                        );
+                        break;
+                    case DRAW_END:
+                        console.log(`draw-end request received from user ${this.id}.`);
+                        await this.handleDrawEnd();
+                        break;
                     default:
                         console.warn("Unknown message type", parsedData.type);
                         this.send(
@@ -379,6 +403,135 @@ export class User {
             )
         }
     }
+
+    private async handleDrawStart(x: number, y: number, color: string, width: number) {
+        if (!this.roomId) {
+            this.send({
+                type: "error",
+                payload: {
+                    message: `user: ${this.username} is not currently in a room.`
+                }
+            })
+            return;
+        }
+
+        try {
+            RoomManager.getInstance().broadcastMessage(
+                this.roomId,
+                {
+                    type: 'draw-start',
+                    payload: {
+                        userId: this.id,
+                        x, y, color, width
+                    }
+                },
+                this
+            );
+
+            await prisma.drawingAction.create({
+                data: {
+                    roomId: this.roomId,
+                    userId: this.id,
+                    type: 'start',
+                    x, y, color, width
+                }
+            });
+        } catch (error) {
+            console.log(`error in handleDrawStart function for userId: ${this.id}`)
+            this.send(
+                {
+                    type: "error",
+                    payload: {
+                        message: "an error occured."
+                    }
+                }
+            )
+        }
+    }
+
+    private async handleDrawMove(x: number, y: number) {
+        if (!this.roomId) {
+            this.send({
+                type: "error",
+                payload: {
+                    message: `user: ${this.username} is not currently in a room.`
+                }
+            })
+            return;
+        }
+
+        try {
+            RoomManager.getInstance().broadcastMessage(
+                this.roomId,
+                {
+                    type: 'draw-move',
+                    payload: { userId: this.id, x, y }
+                },
+                this
+            );
+
+            await prisma.drawingAction.create({
+                data: {
+                    roomId: this.roomId,
+                    userId: this.id,
+                    type: 'move',
+                    x, y
+                }
+            });
+        } catch (error) {
+            console.log(`error in handleDrawMove function for userId: ${this.id}`)
+            this.send(
+                {
+                    type: "error",
+                    payload: {
+                        message: "an error occured."
+                    }
+                }
+            )
+        }
+    }
+
+    private async handleDrawEnd() {
+        if (!this.roomId) {
+            this.send({
+                type: "error",
+                payload: {
+                    message: `user: ${this.username} is not currently in a room.`
+                }
+            })
+            return;
+        }
+
+        try {
+            RoomManager.getInstance().broadcastMessage(
+                this.roomId,
+                {
+                    type: 'draw-end',
+                    payload: { userId: this.id }
+                },
+                this
+            );
+
+            await prisma.drawingAction.create({
+                data: {
+                    roomId: this.roomId,
+                    userId: this.id,
+                    type: 'end'
+                }
+            });
+        } catch (error) {
+            console.log(`error in handleDrawEnd function for userId: ${this.id}`)
+            this.send(
+                {
+                    type: "error",
+                    payload: {
+                        message: "an error occured."
+                    }
+                }
+            )
+        }
+    }
+
 
     destroy() {
         if (this.roomId) {

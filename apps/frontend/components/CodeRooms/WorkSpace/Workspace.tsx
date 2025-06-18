@@ -19,7 +19,7 @@ const Workspace: React.FC<WorkspaceProps> = ({ roomId }) => {
 
         <div className='flex w-full h-full  max-w-7xl mx-auto'>
             <div className=' w-3/5  min-w-5 '>
-                <DrawingCanvas />
+                <DrawingCanvas roomId={roomId} />
             </div>
             <div className='w-2/5'>
                 <Lobby roomId={roomId} />

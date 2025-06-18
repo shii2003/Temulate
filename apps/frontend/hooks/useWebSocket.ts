@@ -49,6 +49,17 @@ export const useWebSocket = () => {
     const sendMessage = (content: string) => {
         WebSocketManager.getInstance().send("send-message", { content });
     };
+    const sendDrawStart = (x: number, y: number, color: string, width: number) => {
+        WebSocketManager.getInstance().send("draw-start", { x, y, color, width });
+    };
+
+    const sendDrawMove = (x: number, y: number) => {
+        WebSocketManager.getInstance().send("draw-move", { x, y });
+    };
+
+    const sendDrawEnd = () => {
+        WebSocketManager.getInstance().send("draw-end", {});
+    };
 
     // Event handlers
     const onRoomCreated = (callback: (data: { roomId: number; roomName: string }) => void) => {
@@ -77,7 +88,18 @@ export const useWebSocket = () => {
 
     const onRoomUsers = (callback: (data: { users: { id: number; username: string }[] }) => void) => {
         WebSocketManager.getInstance().on('room-users', callback)
-    }
+    };
+    const onDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number }) => void) => {
+        WebSocketManager.getInstance().on("draw-start", callback);
+    };
+
+    const onDrawMove = (callback: (data: { userId: number, x: number, y: number }) => void) => {
+        WebSocketManager.getInstance().on("draw-move", callback);
+    };
+
+    const onDrawEnd = (callback: (data: { userId: number }) => void) => {
+        WebSocketManager.getInstance().on("draw-end", callback);
+    };
     const onError = (callback: (data: { message: string }) => void) => {
         WebSocketManager.getInstance().on("error", callback);
     };
@@ -107,6 +129,18 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().off('room-users', callback);
     };
 
+    const offDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number }) => void) => {
+        WebSocketManager.getInstance().off("draw-start", callback);
+    };
+
+    const offDrawMove = (callback: (data: { userId: number, x: number, y: number }) => void) => {
+        WebSocketManager.getInstance().off("draw-move", callback);
+    };
+
+    const offDrawEnd = (callback: (data: { userId: number }) => void) => {
+        WebSocketManager.getInstance().off("draw-end", callback);
+    };
+
     const offError = (callback: (data: any) => void) => {
         WebSocketManager.getInstance().off("error", callback);
     };
@@ -126,6 +160,9 @@ export const useWebSocket = () => {
         sendLeaveRoom,
         sendMessage,
         sendGetRoomUsers,
+        sendDrawStart,
+        sendDrawMove,
+        sendDrawEnd,
 
         // Event handlers
         onRoomCreated,
@@ -135,6 +172,9 @@ export const useWebSocket = () => {
         onUserLeft,
         onNewMessage,
         onRoomUsers,
+        onDrawStart,
+        onDrawMove,
+        onDrawEnd,
         onError,
 
         offRoomCreated,
@@ -143,6 +183,9 @@ export const useWebSocket = () => {
         offNewMessage,
         offUserJoined,
         offRoomUsers,
+        offDrawStart,
+        offDrawMove,
+        offDrawEnd,
         offError,
 
         isConnected,
