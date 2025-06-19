@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Lobby from './Lobby/Lobby';
-import DrawingCanvas from '@/components/GameRoom/DrawingCanvas';
+import DrawingCanvas from '@/components/CodeRooms/DrawingCanvas';
 
 interface WorkspaceProps {
     roomId: number;

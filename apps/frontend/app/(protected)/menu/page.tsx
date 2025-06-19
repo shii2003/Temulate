@@ -31,7 +31,7 @@ const page: React.FC<pageProps> = () => {
                     <div className="flex items-center justify-center flex-col w-full px-2 py-4 text-center gap-2 ">
                         <div className={`text-xl md:text-3xl lg:text-5xl ${courgette.className} tracking-tighter`}>
                             <span className='text-neutral-300'>Start your own{' '}</span>
-                            <span className={`font-extrabold bg-gradient-to-r from-pink-500 via-yellow-400 to-purple-500 bg-clip-text text-transparent tracking-wide ${courgette.className}`}>
+                            <span className={`font-extrabold bg-gradient-to-r from-pink-500 px-2 via-yellow-400 to-purple-500 bg-clip-text text-transparent tracking-wide ${courgette.className}`}>
                                 CANVAS
                             </span>{' '}
                             <span className='text-neutral-300'>- Alone or With Friends!</span>

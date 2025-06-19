@@ -1,6 +1,6 @@
 "use client";
 import Workspace from '@/components/CodeRooms/WorkSpace/Workspace';
-import DrawingCanvas from '@/components/GameRoom/DrawingCanvas';
+import DrawingCanvas from '@/components/CodeRooms/DrawingCanvas';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
