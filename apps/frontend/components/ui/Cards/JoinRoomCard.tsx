@@ -33,12 +33,14 @@ const JoinRoomCard: React.FC<JoinRoomCardProps> = () => {
         <>
             <div className='flex justify-center items-center w-56 h-40 border border-neutral-700 rounded-md bg-gradient-to-b from-indigo-400 to-indigo-200'>
                 <button
-                    className='flex  justify-center items-center gap-2 border border-indigo-300 px-4 py-2 rounded-md bg-neutral-800 hover:bg-neutral-700'
                     onClick={handleOpen}
+                    className="flex justify-center items-center gap-2 border border-indigo-300 px-4 py-2 rounded-md bg-neutral-800 hover:bg-neutral-800 
+             transform transition-transform duration-300 ease-in-out hover:scale-110 cursor-pointer"
                 >
-                    <p className='text-neutral-400 font-semibold'>Join room</p>
-                    <FaLongArrowAltRight size={28} className='text-indigo-400' />
+                    <p className="text-neutral-400 font-semibold transition duration-300">Join room</p>
+                    <FaLongArrowAltRight size={28} className="text-indigo-400 transition duration-300" />
                 </button>
+
 
             </div>
             <JoinRoomModal
