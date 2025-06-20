@@ -5,9 +5,11 @@ import { LuEraser } from 'react-icons/lu';
 import { RiResetLeftFill } from 'react-icons/ri';
 import { FiDownload } from 'react-icons/fi';
 
-type CanvasTopBarProps = {};
+type CanvasTopBarProps = {
+    selectedColor: string
+};
 
-const CanvasTopBar: React.FC<CanvasTopBarProps> = () => {
+const CanvasTopBar: React.FC<CanvasTopBarProps> = ({ selectedColor }) => {
     return (
         <div className="relative h-16 w-full border-b border-neutral-800 px-3 py-1 flex items-center justify-between overflow-hidden">
 
@@ -28,9 +30,9 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = () => {
             />
 
             <div className="relative z-10 flex gap-3">
-                <div className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
-                    <MdColorLens />
-                    <p className='text-sm hidden md:block'>Color</p>
+                <div className='flex gap-4 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                    <MdColorLens className='hidden md:block' />
+                    <p className='h-5 w-5 rounded-md bg-slate-400' style={{ backgroundColor: selectedColor }}></p>
                 </div>
                 <div className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
                     <FaPen />
