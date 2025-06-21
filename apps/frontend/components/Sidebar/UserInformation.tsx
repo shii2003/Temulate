@@ -16,7 +16,7 @@ const UserInformation: React.FC<UserInformationProps> = () => {
 
     return (
         <div
-            className=' flex-col px-6 py-2 gap-4 flex border border-neutral-700 rounded-full text-neutral-200 font-normal tracking-wide bg-neutral-700/30'
+            className='flex items-center  justify-center flex-col px-6 h-10  py-2 gap-2  border border-neutral-700 rounded-full text-neutral-200 font-normal tracking-wide bg-neutral-700/30'
             style={{
                 WebkitMaskImage:
                     'radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)',
@@ -27,7 +27,7 @@ const UserInformation: React.FC<UserInformationProps> = () => {
             }}
         >
             {isLoading ? (
-                <div className='w-24 h-20 rounded-md animate-pulse bg-neutral-600'></div>
+                <div className='w-24 h-20 rounded-md animate-pulse bg-neutral-600 w-10ch'></div>
             ) : (
                 user?.username
             )}

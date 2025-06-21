@@ -6,12 +6,26 @@ import { RiResetLeftFill } from 'react-icons/ri';
 import { FiDownload } from 'react-icons/fi';
 
 type CanvasTopBarProps = {
-    selectedColor: string
-    toggleColorPicker: () => void;
+
+    selectedColor: string;
     colorPickerButtonRef: React.RefObject<HTMLButtonElement | null>;
+    toggleColorPicker: () => void;
+    brushSize: number;
+    brushSizeButtonRef: React.RefObject<HTMLButtonElement | null>;
+    toggleSizeSelector: () => void;
+    isEraserOpen: boolean;
+    toggleIsEraserOpen: () => void;
 };
 
-const CanvasTopBar: React.FC<CanvasTopBarProps> = ({ selectedColor, toggleColorPicker, colorPickerButtonRef }) => {
+const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
+    selectedColor,
+    colorPickerButtonRef,
+    toggleColorPicker,
+    brushSize,
+    brushSizeButtonRef,
+    toggleSizeSelector,
+    isEraserOpen,
+    toggleIsEraserOpen }) => {
     return (
         <div className="relative h-16 w-full border-b border-neutral-800 px-3 py-1 flex items-center justify-between overflow-hidden">
 
@@ -40,11 +54,21 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({ selectedColor, toggleColorP
                     <MdColorLens className='hidden md:block' />
                     <p className='h-5 w-5 rounded-md bg-slate-400' style={{ backgroundColor: selectedColor }}></p>
                 </button>
-                <button className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
-                    <FaPen />
-                    <p className='text-sm hidden md:block'>Brush</p>
+                <button
+                    ref={brushSizeButtonRef}
+                    className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'
+                    onClick={toggleSizeSelector}
+                >
+                    <FaPen className='hidden md:block' />
+                    {/* <p className='text-sm hidden md:block'>Brush</p> */}
+                    <div className='w-8 flex h-full rounded-md border-neutral-700 border items-center justify-center '>
+                        {brushSize}
+                    </div>
                 </button>
-                <button className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                <button
+                    className={`flex gap-2 items-center justify-center rounded-md border px-3 py-2   ${isEraserOpen ? "border-rose-600 bg-rose-500/20 hover:bg-rose-500/40 text-white" : " border-neutral-600 hover:bg-neutral-700/60  bg-neutral-700/20 text-neutral-300 "}`}
+                    onClick={toggleIsEraserOpen}
+                >
                     <LuEraser />
                     <p className='text-sm hidden md:block'>Eraser</p>
                 </button>
@@ -55,7 +79,7 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({ selectedColor, toggleColorP
                     <RiResetLeftFill />
                     <p className='text-sm hidden md:block'>Reset</p>
                 </button>
-                <button className='flex border px-3 py-2 rounded-md items-center justify-center gap-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20 '>
+                <button className='flex border px-3 py-2 rounded-md items-center justify-center gap-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
                     <FiDownload />
                     <p className='text-sm hidden md:block'>Export</p>
                 </button>

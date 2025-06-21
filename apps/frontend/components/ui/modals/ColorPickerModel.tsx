@@ -78,7 +78,7 @@ const ColorPickerModel: React.FC<ColorPickerModelProps> = ({ selectedColor, setS
                             placeholder='#000000'
                         />
                         <button
-                            className='flex items-center justify-center rounded-md px-2 py-1 bg-indigo-400/60 hover:bg-indigo-400/30 focus:ring-2 focus:ring-indigo-400'
+                            className={`flex items-center justify-center rounded-md px-2 py-1 bg-indigo-400/60 hover:bg-indigo-400/30 focus:ring-2 focus:ring-indigo-400 ${!hexCodeInput.trim() ? "cursor-not-allowed" : ""}`}
                             onClick={handleSet}
                             disabled={!hexCodeInput.trim()}
                         >
