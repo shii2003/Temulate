@@ -10,6 +10,17 @@ body {
   overflow-x: hidden;
 }
 
+.chrome-picker {
+  background-color: #27272a !important;
+}
+
+.chrome-picker .saturation,
+.chrome-picker .hue,
+.chrome-picker .editable-input {
+  background-color: #27272a !important;
+  color: #e5e7eb;
+}
+
 .bg-grainy {
   background-image: url('https://www.transparenttextures.com/patterns/brilliant.png');
   background-size: cover;

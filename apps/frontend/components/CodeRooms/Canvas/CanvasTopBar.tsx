@@ -7,9 +7,11 @@ import { FiDownload } from 'react-icons/fi';
 
 type CanvasTopBarProps = {
     selectedColor: string
+    toggleColorPicker: () => void;
+    colorPickerButtonRef: React.RefObject<HTMLButtonElement | null>;
 };
 
-const CanvasTopBar: React.FC<CanvasTopBarProps> = ({ selectedColor }) => {
+const CanvasTopBar: React.FC<CanvasTopBarProps> = ({ selectedColor, toggleColorPicker, colorPickerButtonRef }) => {
     return (
         <div className="relative h-16 w-full border-b border-neutral-800 px-3 py-1 flex items-center justify-between overflow-hidden">
 
@@ -30,29 +32,33 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({ selectedColor }) => {
             />
 
             <div className="relative z-10 flex gap-3">
-                <div className='flex gap-4 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                <button
+                    ref={colorPickerButtonRef}
+                    className='flex gap-4 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'
+                    onClick={toggleColorPicker}
+                >
                     <MdColorLens className='hidden md:block' />
                     <p className='h-5 w-5 rounded-md bg-slate-400' style={{ backgroundColor: selectedColor }}></p>
-                </div>
-                <div className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                </button>
+                <button className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
                     <FaPen />
                     <p className='text-sm hidden md:block'>Brush</p>
-                </div>
-                <div className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                </button>
+                <button className='flex gap-2 items-center justify-center rounded-md border px-3 py-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
                     <LuEraser />
                     <p className='text-sm hidden md:block'>Eraser</p>
-                </div>
+                </button>
             </div>
 
             <div className="relative z-10 flex items-center justify-center gap-3">
-                <div className='flex items-center justify-center gap-2 border px-3 py-2 rounded-md text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                <button className='flex items-center justify-center gap-2 border px-3 py-2 rounded-md text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
                     <RiResetLeftFill />
                     <p className='text-sm hidden md:block'>Reset</p>
-                </div>
-                <div className='flex border px-3 py-2 rounded-md items-center justify-center gap-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                </button>
+                <button className='flex border px-3 py-2 rounded-md items-center justify-center gap-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20 '>
                     <FiDownload />
                     <p className='text-sm hidden md:block'>Export</p>
-                </div>
+                </button>
             </div>
         </div>
     );
