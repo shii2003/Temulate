@@ -1,16 +1,23 @@
 'use client';
 import CanvasTopBar from '@/components/CodeRooms/Canvas/CanvasTopBar';
 import ColorPickerModel from '@/components/ui/modals/ColorPickerModel';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import SizeSelectorModel from '@/components/ui/modals/SizeSelectorModel';
 
-type pageProps = {
+type pageProps = {};
 
+type Stroke = {
+    startX: number;
+    startY: number;
+    endX: number;
+    endY: number;
+    color: string;
+    width: number;
+    isEraser?: boolean;
 };
 
 const page: React.FC<pageProps> = () => {
-
-    const [selectedColor, setSelectedColor] = useState<string>("#000000");
+    const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
     const [isColorPickerOpen, setIsColorPickerOpen] = useState<boolean>(false);
 
     const [brushSize, setBrushSize] = useState<number>(10);
@@ -24,24 +31,142 @@ const page: React.FC<pageProps> = () => {
     const brushSizeRef = useRef<HTMLDivElement>(null);
     const brushSizeButtonRef = useRef<HTMLButtonElement>(null);
 
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const isDrawing = useRef(false);
+    const lastPos = useRef<{ x: number; y: number } | null>(null);
+    const strokes = useRef<Stroke[]>([]);
+
     useEffect(() => {
-        const handleClickOutsideColorPicker = (event: MouseEvent) => {
-            const target = event.target as Node;
-            if (
-                colorPickerRef.current &&
-                colorPickerButtonRef.current &&
-                !colorPickerRef.current.contains(target) &&
-                !colorPickerButtonRef.current.contains(target)
-            ) {
-                setIsColorPickerOpen(false);
-            }
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const resizeCanvas = () => {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+            redraw();
         };
 
-        document.addEventListener("mousedown", handleClickOutsideColorPicker);
+        const observer = new ResizeObserver(resizeCanvas);
+        observer.observe(canvas);
+
+        resizeCanvas();
+
         return () => {
-            document.removeEventListener("mousedown", handleClickOutsideColorPicker);
+            observer.disconnect();
+        };
+    }, []);
+
+    const getNormalizedMousePos = (e: MouseEvent | TouchEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return { x: 0, y: 0 };
+
+        const rect = canvas.getBoundingClientRect();
+        const clientX = (e as TouchEvent).touches
+            ? (e as TouchEvent).touches[0].clientX
+            : (e as MouseEvent).clientX;
+        const clientY = (e as TouchEvent).touches
+            ? (e as TouchEvent).touches[0].clientY
+            : (e as MouseEvent).clientY;
+
+        return {
+            x: (clientX - rect.left) / rect.width,
+            y: (clientY - rect.top) / rect.height,
+        };
+    };
+
+    const drawLine = (
+        ctx: CanvasRenderingContext2D,
+        stroke: Stroke,
+        canvasWidth: number,
+        canvasHeight: number
+    ) => {
+        const startX = stroke.startX * canvasWidth;
+        const startY = stroke.startY * canvasHeight;
+        const endX = stroke.endX * canvasWidth;
+        const endY = stroke.endY * canvasHeight;
+
+        const base = Math.min(canvasWidth, canvasHeight);
+        const scaledWidth = stroke.width * Math.max(0.5, base / 500);
+
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.strokeStyle = stroke.isEraser ? '#171717' : stroke.color;
+        ctx.lineWidth = scaledWidth;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        ctx.closePath();
+    };
+
+
+    const redraw = useCallback(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (const stroke of strokes.current) {
+            drawLine(ctx, stroke, canvas.width, canvas.height);
         }
-    }, [])
+    }, []);
+
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const startDrawing = (e: MouseEvent | TouchEvent) => {
+            isDrawing.current = true;
+            lastPos.current = getNormalizedMousePos(e);
+        };
+
+        const draw = (e: MouseEvent | TouchEvent) => {
+            if (!isDrawing.current || !lastPos.current) return;
+            const pos = getNormalizedMousePos(e);
+
+            const stroke: Stroke = {
+                startX: lastPos.current.x,
+                startY: lastPos.current.y,
+                endX: pos.x,
+                endY: pos.y,
+                color: selectedColor,
+                width: brushSize,
+                isEraser: isEraserOpen
+            };
+
+            strokes.current.push(stroke);
+            drawLine(ctx, stroke, canvas.width, canvas.height);
+            lastPos.current = pos;
+        };
+
+        const stopDrawing = () => {
+            isDrawing.current = false;
+            lastPos.current = null;
+        };
+
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        window.addEventListener('mouseup', stopDrawing);
+
+        canvas.addEventListener('touchstart', startDrawing);
+        canvas.addEventListener('touchmove', draw);
+        window.addEventListener('touchend', stopDrawing);
+
+        return () => {
+            canvas.removeEventListener('mousedown', startDrawing);
+            canvas.removeEventListener('mousemove', draw);
+            window.removeEventListener('mouseup', stopDrawing);
+
+            canvas.removeEventListener('touchstart', startDrawing);
+            canvas.removeEventListener('touchmove', draw);
+            window.removeEventListener('touchend', stopDrawing);
+        };
+    }, [selectedColor, brushSize, isEraserOpen]);
 
     useEffect(() => {
         const handleClickOutsideSizeSelector = (event: MouseEvent) => {
@@ -59,26 +184,24 @@ const page: React.FC<pageProps> = () => {
         document.addEventListener("mousedown", handleClickOutsideSizeSelector);
         return () => {
             document.removeEventListener("mousedown", handleClickOutsideSizeSelector);
-        }
-    }, [])
+        };
+    }, []);
 
     return (
-        <div className='flex flex-col  h-full w-full'>
+        <div className='flex flex-col h-full w-full'>
             <div className='flex'>
                 <CanvasTopBar
                     selectedColor={selectedColor}
                     colorPickerButtonRef={colorPickerButtonRef}
                     toggleColorPicker={() => setIsColorPickerOpen(prev => !prev)}
-
                     brushSize={brushSize}
                     brushSizeButtonRef={brushSizeButtonRef}
                     toggleSizeSelector={() => setIsSizeSelectorOpen(prev => !prev)}
-
                     isEraserOpen={isEraserOpen}
                     toggleIsEraserOpen={() => setIsEraserOpen(prev => !prev)}
                 />
             </div>
-            <div className='flex-1 border border-red-500 '>
+            <div className='flex-1 border border-red-500 px-4 py-2 bg-neutral-800'>
                 {isColorPickerOpen && (
                     <div ref={colorPickerRef} className='absolute top-20 z-50'>
                         <ColorPickerModel
@@ -94,8 +217,15 @@ const page: React.FC<pageProps> = () => {
                         />
                     )}
                 </div>
+                <div className="relative w-full max-w-4xl mx-auto aspect-[4/3] border border-neutral-700 rounded-md bg-neutral-900 overflow-hidden">
+                    <canvas
+                        ref={canvasRef}
+                        className="absolute top-0 left-0 w-full h-full"
+                    />
+                </div>
             </div>
         </div>
-    )
-}
+    );
+};
+
 export default page;
