@@ -15,6 +15,8 @@ type CanvasTopBarProps = {
     toggleSizeSelector: () => void;
     isEraserOpen: boolean;
     toggleIsEraserOpen: () => void;
+    setIsResetOptionOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setIsExportModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
@@ -25,7 +27,10 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
     brushSizeButtonRef,
     toggleSizeSelector,
     isEraserOpen,
-    toggleIsEraserOpen }) => {
+    toggleIsEraserOpen,
+    setIsResetOptionOpen,
+    setIsExportModalOpen,
+}) => {
     return (
         <div className="relative h-16 w-full border-b border-neutral-800 px-3 py-1 flex items-center justify-between overflow-hidden">
 
@@ -75,11 +80,17 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
             </div>
 
             <div className="relative z-10 flex items-center justify-center gap-3">
-                <button className='flex items-center justify-center gap-2 border px-3 py-2 rounded-md text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                <button
+                    className={`flex items-center justify-center gap-2 border px-3 py-2 rounded-md text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20`}
+                    onClick={() => setIsResetOptionOpen(true)}
+                >
                     <RiResetLeftFill />
                     <p className='text-sm hidden md:block'>Reset</p>
                 </button>
-                <button className='flex border px-3 py-2 rounded-md items-center justify-center gap-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'>
+                <button
+                    className='flex border px-3 py-2 rounded-md items-center justify-center gap-2 text-neutral-300 border-neutral-600 hover:bg-neutral-700/60 bg-neutral-700/20'
+                    onClick={() => setIsExportModalOpen(true)}
+                >
                     <FiDownload />
                     <p className='text-sm hidden md:block'>Export</p>
                 </button>

@@ -42,7 +42,6 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
         router.push(`/codeRooms/${data.roomId}`);
     }, [toastId, onClose, router]);
 
-    // Handle errors
     const handleError = useCallback((data: { message: string }) => {
         console.log('Error:', data);
         if (toastId) toast.dismiss(toastId);
@@ -51,7 +50,6 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
         setIsLoading(false);
     }, [toastId]);
 
-    // Register event handlers
     useEffect(() => {
         if (!isOpen) return;
 
@@ -86,7 +84,6 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
             return;
         }
 
-        // Check connection using hook's method
         if (!isConnected()) {
             toast.error('Connection Error', {
                 description: 'Unable to connect to the server. Please try again later.'
@@ -98,11 +95,9 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
         setToastId(id);
         setIsLoading(true);
 
-        // Use hook's send method
         sendCreateRoom(roomName.trim());
     }
 
-    // Reset state on close
     useEffect(() => {
         if (!isOpen) {
             setRoomName("");

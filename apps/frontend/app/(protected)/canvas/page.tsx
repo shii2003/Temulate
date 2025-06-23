@@ -1,8 +1,10 @@
 'use client';
 import CanvasTopBar from '@/components/CodeRooms/Canvas/CanvasTopBar';
-import ColorPickerModel from '@/components/ui/modals/ColorPickerModel';
+import ColorPickerModel from '@/components/ui/modals/ColorPickerModal';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import SizeSelectorModel from '@/components/ui/modals/SizeSelectorModel';
+import ResetOptionModal from '@/components/ui/modals/ResetOptionModal';
+import ExportImageModal from '@/components/ui/modals/ExportImageModal';
 
 type pageProps = {};
 
@@ -24,6 +26,9 @@ const page: React.FC<pageProps> = () => {
     const [isSizeSelectorOpen, setIsSizeSelectorOpen] = useState<boolean>(false);
 
     const [isEraserOpen, setIsEraserOpen] = useState<boolean>(false);
+
+    const [isResetOptionOpen, setIsResetOptionOpen] = useState<boolean>(false);
+    const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
 
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const colorPickerButtonRef = useRef<HTMLButtonElement>(null);
@@ -199,6 +204,9 @@ const page: React.FC<pageProps> = () => {
                     toggleSizeSelector={() => setIsSizeSelectorOpen(prev => !prev)}
                     isEraserOpen={isEraserOpen}
                     toggleIsEraserOpen={() => setIsEraserOpen(prev => !prev)}
+                    setIsResetOptionOpen={setIsResetOptionOpen}
+                    setIsExportModalOpen={setIsExportModalOpen}
+
                 />
             </div>
             <div className='flex-1 border border-red-500 px-4 py-2 bg-neutral-800'>
@@ -217,6 +225,18 @@ const page: React.FC<pageProps> = () => {
                         />
                     )}
                 </div>
+
+                {isResetOptionOpen && (
+                    <ResetOptionModal
+                        setIsResetOptionOpen={setIsResetOptionOpen}
+                    />
+                )}
+
+                {isExportModalOpen &&
+                    <ExportImageModal
+                        setIsExportModalOpen={setIsExportModalOpen}
+                    />
+                }
                 <div className="relative w-full max-w-4xl mx-auto aspect-[4/3] border border-neutral-700 rounded-md bg-neutral-900 overflow-hidden">
                     <canvas
                         ref={canvasRef}

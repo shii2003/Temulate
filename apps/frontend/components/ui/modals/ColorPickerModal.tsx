@@ -3,12 +3,12 @@ import React, { useState } from 'react';
 import { ChromePicker } from 'react-color';
 import { FaRegCheckCircle } from 'react-icons/fa';
 
-type ColorPickerModelProps = {
+type ColorPickerModalProps = {
     selectedColor: string;
     setSelectedColor: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const ColorPickerModel: React.FC<ColorPickerModelProps> = ({ selectedColor, setSelectedColor }) => {
+const ColorPickerModal: React.FC<ColorPickerModalProps> = ({ selectedColor, setSelectedColor }) => {
     const [hexCodeInput, setHexCodeInput] = useState<string>('');
     const [isHexColorSet, setIsHexColorSet] = useState<boolean>(false);
     const [isColorWheelOpen, setIsColorWheelOpen] = useState<boolean>(false);
@@ -95,4 +95,4 @@ const ColorPickerModel: React.FC<ColorPickerModelProps> = ({ selectedColor, setS
     );
 };
 
-export default ColorPickerModel;
+export default ColorPickerModal;
