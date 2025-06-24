@@ -28,7 +28,7 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           {children}
-          <Toaster richColors />
+          <Toaster richColors style={{ zIndex: 99999 }} />
         </body>
       </Providers>
     </html>

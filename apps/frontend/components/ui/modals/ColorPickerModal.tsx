@@ -30,7 +30,7 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({ selectedColor, setS
     ];
 
     return (
-        <div className='flex flex-col items-center justify-center rounded-md w-52 ml-4'>
+        <div className='flex flex-col items-center justify-center rounded-md w-52 ml-4 bg-red-500'>
             <div className='flex flex-col border border-neutral-700 px-3 py-2 w-52 bg-neutral-900 gap-2 rounded-md'>
 
                 <div className='flex flex-col gap-2 py-2'>

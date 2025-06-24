@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import SizeSelectorModel from '@/components/ui/modals/SizeSelectorModel';
 import ResetOptionModal from '@/components/ui/modals/ResetOptionModal';
 import ExportImageModal from '@/components/ui/modals/ExportImageModal';
+import { toast } from 'sonner';
 
 type pageProps = {};
 
@@ -35,6 +36,8 @@ const page: React.FC<pageProps> = () => {
 
     const brushSizeRef = useRef<HTMLDivElement>(null);
     const brushSizeButtonRef = useRef<HTMLButtonElement>(null);
+
+    const backgroundColorHexCode = '#171717';
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const isDrawing = useRef(false);
@@ -192,6 +195,11 @@ const page: React.FC<pageProps> = () => {
         };
     }, []);
 
+    const handleResetCanvas = () => {
+        strokes.current = []
+        redraw();
+    }
+
     return (
         <div className='flex flex-col h-full w-full'>
             <div className='flex'>
@@ -209,16 +217,29 @@ const page: React.FC<pageProps> = () => {
 
                 />
             </div>
-            <div className='flex-1 border border-red-500 px-4 py-2 bg-neutral-800'>
+            <div className='relative flex-1 px-4 py-2 bg-neutral-900 overflow-hidden'>
+
+                <div
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{
+                        backgroundImage: `linear-gradient(to bottom, rgba(23,23,23,0.3), rgba(23,23,23,0.2), rgba(23,23,23,0.3)), url('/cartographer.png')`,
+                        backgroundRepeat: 'repeat',
+                        backgroundSize: 'auto',
+                        backgroundPosition: 'center',
+                        maskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 50%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)',
+                        WebkitMaskImage: 'radial-gradient(ellipse at center, rgba(0,0,0,1) 50%, rgba(0,0,0,0.3) 80%, rgba(0,0,0,0) 100%)',
+                    }}
+                />
+
                 {isColorPickerOpen && (
-                    <div ref={colorPickerRef} className='absolute top-20 z-50'>
+                    <div ref={colorPickerRef} className='absolute top-15 z-50'>
                         <ColorPickerModel
                             selectedColor={selectedColor}
                             setSelectedColor={setSelectedColor}
                         />
                     </div>
                 )}
-                <div ref={brushSizeRef} className='absolute top-20 z-50'>
+                <div ref={brushSizeRef} className='absolute top-15 z-50'>
                     {isSizeSelectorOpen && (
                         <SizeSelectorModel
                             setBrushSize={setBrushSize}
@@ -229,15 +250,19 @@ const page: React.FC<pageProps> = () => {
                 {isResetOptionOpen && (
                     <ResetOptionModal
                         setIsResetOptionOpen={setIsResetOptionOpen}
+                        handleResetCanvas={handleResetCanvas}
                     />
                 )}
 
                 {isExportModalOpen &&
                     <ExportImageModal
                         setIsExportModalOpen={setIsExportModalOpen}
+                        canvasRef={canvasRef}
+                        backgroundColorHexCode={backgroundColorHexCode}
                     />
                 }
-                <div className="relative w-full max-w-4xl mx-auto aspect-[4/3] border border-neutral-700 rounded-md bg-neutral-900 overflow-hidden">
+                <div
+                    className="relative w-full max-w-4xl mx-auto aspect-[4/3] border border-neutral-700 rounded-md bg-neutral-900 overflow-hidden">
                     <canvas
                         ref={canvasRef}
                         className="absolute top-0 left-0 w-full h-full"

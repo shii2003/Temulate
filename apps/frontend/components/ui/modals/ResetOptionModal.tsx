@@ -1,12 +1,13 @@
 import React from 'react';
 import { IoClose } from 'react-icons/io5';
+import { toast } from 'sonner';
 
 type ResetOptionModalProps = {
     setIsResetOptionOpen: React.Dispatch<React.SetStateAction<boolean>>;
-
+    handleResetCanvas: () => void;
 };
 
-const ResetOptionModal: React.FC<ResetOptionModalProps> = ({ setIsResetOptionOpen }) => {
+const ResetOptionModal: React.FC<ResetOptionModalProps> = ({ setIsResetOptionOpen, handleResetCanvas }) => {
 
     return (
         <div className='fixed inset-0 flex items-center justify-center rounded-md z-50 bg-black/50'>
@@ -24,6 +25,11 @@ const ResetOptionModal: React.FC<ResetOptionModalProps> = ({ setIsResetOptionOpe
                     <div className='flex justify-between px-2'>
                         <button
                             className='flex items-center justify-center px-3 bg-indigo-400/80 py-2 rounded-md font-semibold text-white hover:bg-indigo-400/50 w-20 '
+                            onClick={() => {
+                                handleResetCanvas();
+                                setIsResetOptionOpen(false);
+                                toast.success("Canvas has been reset successfully!");
+                            }}
                         >
                             Yes
                         </button>
