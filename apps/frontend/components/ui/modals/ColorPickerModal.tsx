@@ -24,9 +24,18 @@ const ColorPickerModal: React.FC<ColorPickerModalProps> = ({ selectedColor, setS
     };
 
     const defaultColors = [
-        "#FADADD", "#AEC6CF", "#BFD8B8", "#FFFACD", "#D7BDE2",
-        "#FFDAB9", "#AAF0D1", "#E6DAF1", "#FFD1BA", "#B2DFDB",
-        "#FFFFFF", "#000000",
+        "#FF6B6B",
+        "#4DD0E1",
+        "#81C784",
+        "#FFD54F",
+        "#BA68C8",
+        "#FF8A65",
+        "#4DB6AC",
+        "#7986CB",
+        "#F06292",
+        "#64B5F6",
+        "#FFFFFF",
+        "#000000",
     ];
 
     return (

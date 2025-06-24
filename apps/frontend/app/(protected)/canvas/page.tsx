@@ -6,6 +6,7 @@ import SizeSelectorModel from '@/components/ui/modals/SizeSelectorModel';
 import ResetOptionModal from '@/components/ui/modals/ResetOptionModal';
 import ExportImageModal from '@/components/ui/modals/ExportImageModal';
 import { toast } from 'sonner';
+import EraserSizeSelectorModal from '@/components/ui/modals/EraserSizeSelectorModal';
 
 type pageProps = {};
 
@@ -27,6 +28,7 @@ const page: React.FC<pageProps> = () => {
     const [isSizeSelectorOpen, setIsSizeSelectorOpen] = useState<boolean>(false);
 
     const [isEraserOpen, setIsEraserOpen] = useState<boolean>(false);
+    const [eraserSize, setEraserSize] = useState<number>(14);
 
     const [isResetOptionOpen, setIsResetOptionOpen] = useState<boolean>(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
@@ -36,6 +38,9 @@ const page: React.FC<pageProps> = () => {
 
     const brushSizeRef = useRef<HTMLDivElement>(null);
     const brushSizeButtonRef = useRef<HTMLButtonElement>(null);
+
+    const eraserRef = useRef<HTMLDivElement>(null);
+    const eraserButtonRef = useRef<HTMLButtonElement>(null);
 
     const backgroundColorHexCode = '#171717';
 
@@ -100,7 +105,7 @@ const page: React.FC<pageProps> = () => {
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(endX, endY);
-        ctx.strokeStyle = stroke.isEraser ? '#171717' : stroke.color;
+        ctx.strokeStyle = stroke.color;
         ctx.lineWidth = scaledWidth;
         ctx.lineCap = 'round';
         ctx.stroke();
@@ -142,8 +147,8 @@ const page: React.FC<pageProps> = () => {
                 startY: lastPos.current.y,
                 endX: pos.x,
                 endY: pos.y,
-                color: selectedColor,
-                width: brushSize,
+                color: isEraserOpen ? backgroundColorHexCode : selectedColor,
+                width: isEraserOpen ? eraserSize : brushSize,
                 isEraser: isEraserOpen
             };
 
@@ -177,6 +182,24 @@ const page: React.FC<pageProps> = () => {
     }, [selectedColor, brushSize, isEraserOpen]);
 
     useEffect(() => {
+        const handleClickOutsideColorPicker = (event: MouseEvent) => {
+            const target = event.target as Node;
+            if (colorPickerRef.current &&
+                !colorPickerRef.current.contains(target) &&
+                colorPickerButtonRef.current &&
+                !colorPickerButtonRef.current.contains(target)
+            ) {
+                setIsColorPickerOpen(false);
+            }
+        }
+
+        document.addEventListener("mousedown", handleClickOutsideColorPicker);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutsideColorPicker);
+        }
+    }, [])
+
+    useEffect(() => {
         const handleClickOutsideSizeSelector = (event: MouseEvent) => {
             const target = event.target as Node;
             if (
@@ -195,6 +218,26 @@ const page: React.FC<pageProps> = () => {
         };
     }, []);
 
+    useEffect(() => {
+        const handleClickOutsideEraserSizeSelector = (event: MouseEvent) => {
+            const target = event?.target as Node;
+
+            if (eraserRef.current &&
+                !eraserRef.current.contains(target) &&
+                eraserButtonRef.current &&
+                !eraserButtonRef.current.contains(target)
+            ) {
+                setIsEraserOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutsideEraserSizeSelector);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutsideEraserSizeSelector);
+        }
+    }, [])
+
+
     const handleResetCanvas = () => {
         strokes.current = []
         redraw();
@@ -210,11 +253,12 @@ const page: React.FC<pageProps> = () => {
                     brushSize={brushSize}
                     brushSizeButtonRef={brushSizeButtonRef}
                     toggleSizeSelector={() => setIsSizeSelectorOpen(prev => !prev)}
+                    eraserSize={eraserSize}
+                    eraserButtonRef={eraserButtonRef}
                     isEraserOpen={isEraserOpen}
                     toggleIsEraserOpen={() => setIsEraserOpen(prev => !prev)}
                     setIsResetOptionOpen={setIsResetOptionOpen}
                     setIsExportModalOpen={setIsExportModalOpen}
-
                 />
             </div>
             <div className='relative flex-1 px-4 py-2 bg-neutral-900 overflow-hidden'>
@@ -247,6 +291,15 @@ const page: React.FC<pageProps> = () => {
                     )}
                 </div>
 
+                {isEraserOpen && (
+                    <div ref={eraserRef} className='absolute z-50 ml-24'>
+                        <EraserSizeSelectorModal
+                            setEraserSize={setEraserSize}
+                        />
+                    </div>
+                )
+
+                }
                 {isResetOptionOpen && (
                     <ResetOptionModal
                         setIsResetOptionOpen={setIsResetOptionOpen}

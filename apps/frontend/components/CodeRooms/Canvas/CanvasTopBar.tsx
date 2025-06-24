@@ -13,7 +13,9 @@ type CanvasTopBarProps = {
     brushSize: number;
     brushSizeButtonRef: React.RefObject<HTMLButtonElement | null>;
     toggleSizeSelector: () => void;
+    eraserSize: number;
     isEraserOpen: boolean;
+    eraserButtonRef: React.RefObject<HTMLButtonElement | null>
     toggleIsEraserOpen: () => void;
     setIsResetOptionOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setIsExportModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -26,7 +28,9 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
     brushSize,
     brushSizeButtonRef,
     toggleSizeSelector,
+    eraserSize,
     isEraserOpen,
+    eraserButtonRef,
     toggleIsEraserOpen,
     setIsResetOptionOpen,
     setIsExportModalOpen,
@@ -71,11 +75,15 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
                     </div>
                 </button>
                 <button
+                    ref={eraserButtonRef}
                     className={`flex gap-2 items-center justify-center rounded-md border px-3 py-2   ${isEraserOpen ? "border-rose-600 bg-rose-500/20 hover:bg-rose-500/40 text-white" : " border-neutral-600 hover:bg-neutral-700/60  bg-neutral-700/20 text-neutral-300 "}`}
                     onClick={toggleIsEraserOpen}
                 >
                     <LuEraser />
-                    <p className='text-sm hidden md:block'>Eraser</p>
+                    {/* <p className='text-sm hidden md:block'>Eraser</p> */}
+                    <div className={`w-8 flex h-full rounded-md  border items-center justify-center ${isEraserOpen ? "  border-rose-600/60" : "border-neutral-700"} `}>
+                        {eraserSize}
+                    </div>
                 </button>
             </div>
 
