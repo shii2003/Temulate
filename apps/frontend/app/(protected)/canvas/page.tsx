@@ -27,7 +27,8 @@ const page: React.FC<pageProps> = () => {
     const [brushSize, setBrushSize] = useState<number>(10);
     const [isSizeSelectorOpen, setIsSizeSelectorOpen] = useState<boolean>(false);
 
-    const [isEraserOpen, setIsEraserOpen] = useState<boolean>(false);
+    const [isEraserMode, setIsEraserMode] = useState<boolean>(false);
+    const [isEraserSizeSelectorOpen, setIsEraserSizeSelectorOpen] = useState<boolean>(false);
     const [eraserSize, setEraserSize] = useState<number>(14);
 
     const [isResetOptionOpen, setIsResetOptionOpen] = useState<boolean>(false);
@@ -39,8 +40,9 @@ const page: React.FC<pageProps> = () => {
     const brushSizeRef = useRef<HTMLDivElement>(null);
     const brushSizeButtonRef = useRef<HTMLButtonElement>(null);
 
-    const eraserRef = useRef<HTMLDivElement>(null);
-    const eraserButtonRef = useRef<HTMLButtonElement>(null);
+    const eraserSizeSelectorRef = useRef<HTMLDivElement>(null);
+    const eraserToggleButtonRef = useRef<HTMLButtonElement>(null);
+    const eraserSizeButtonRef = useRef<HTMLButtonElement>(null);
 
     const backgroundColorHexCode = '#171717';
 
@@ -48,6 +50,18 @@ const page: React.FC<pageProps> = () => {
     const isDrawing = useRef(false);
     const lastPos = useRef<{ x: number; y: number } | null>(null);
     const strokes = useRef<Stroke[]>([]);
+
+    const createEraserCursor = (size: number) => {
+        const adjustedSize = Math.max(16, Math.min(size, 64));
+        const svg = `
+            <svg width="${adjustedSize}" height="${adjustedSize}" viewBox="0 0 ${adjustedSize} ${adjustedSize}" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="${adjustedSize / 2}" cy="${adjustedSize / 2}" r="${adjustedSize / 2 - 2}" 
+                        fill="none" stroke="#ef4444" stroke-width="2" opacity="0.8"/>
+                <circle cx="${adjustedSize / 2}" cy="${adjustedSize / 2}" r="2" fill="#ef4444" opacity="0.6"/>
+            </svg>
+        `;
+        return `data:image/svg+xml;base64,${btoa(svg)}`;
+    };
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -69,6 +83,19 @@ const page: React.FC<pageProps> = () => {
             observer.disconnect();
         };
     }, []);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        if (isEraserMode) {
+            const cursorUrl = createEraserCursor(eraserSize);
+            const centerOffset = Math.max(8, Math.min(eraserSize / 2, 32));
+            canvas.style.cursor = `url('${cursorUrl}') ${centerOffset} ${centerOffset}, crosshair`;
+        } else {
+            canvas.style.cursor = 'crosshair';
+        }
+    }, [isEraserMode, eraserSize]);
 
     const getNormalizedMousePos = (e: MouseEvent | TouchEvent) => {
         const canvas = canvasRef.current;
@@ -147,9 +174,9 @@ const page: React.FC<pageProps> = () => {
                 startY: lastPos.current.y,
                 endX: pos.x,
                 endY: pos.y,
-                color: isEraserOpen ? backgroundColorHexCode : selectedColor,
-                width: isEraserOpen ? eraserSize : brushSize,
-                isEraser: isEraserOpen
+                color: isEraserMode ? backgroundColorHexCode : selectedColor,
+                width: isEraserMode ? eraserSize : brushSize,
+                isEraser: isEraserMode
             };
 
             strokes.current.push(stroke);
@@ -179,7 +206,7 @@ const page: React.FC<pageProps> = () => {
             canvas.removeEventListener('touchmove', draw);
             window.removeEventListener('touchend', stopDrawing);
         };
-    }, [selectedColor, brushSize, isEraserOpen]);
+    }, [selectedColor, brushSize, isEraserMode, eraserSize]);
 
     useEffect(() => {
         const handleClickOutsideColorPicker = (event: MouseEvent) => {
@@ -222,12 +249,12 @@ const page: React.FC<pageProps> = () => {
         const handleClickOutsideEraserSizeSelector = (event: MouseEvent) => {
             const target = event?.target as Node;
 
-            if (eraserRef.current &&
-                !eraserRef.current.contains(target) &&
-                eraserButtonRef.current &&
-                !eraserButtonRef.current.contains(target)
+            if (eraserSizeSelectorRef.current &&
+                !eraserSizeSelectorRef.current.contains(target) &&
+                eraserSizeButtonRef.current &&
+                !eraserSizeButtonRef.current.contains(target)
             ) {
-                setIsEraserOpen(false);
+                setIsEraserSizeSelectorOpen(false);
             }
         };
 
@@ -254,9 +281,11 @@ const page: React.FC<pageProps> = () => {
                     brushSizeButtonRef={brushSizeButtonRef}
                     toggleSizeSelector={() => setIsSizeSelectorOpen(prev => !prev)}
                     eraserSize={eraserSize}
-                    eraserButtonRef={eraserButtonRef}
-                    isEraserOpen={isEraserOpen}
-                    toggleIsEraserOpen={() => setIsEraserOpen(prev => !prev)}
+                    eraserSizeButtonRef={eraserSizeButtonRef}
+                    isEraserMode={isEraserMode}
+                    toggleEraserMode={() => setIsEraserMode(prev => !prev)}
+                    eraserToggleButtonRef={eraserToggleButtonRef}
+                    toggleEraserSizeSelector={() => setIsEraserSizeSelectorOpen(prev => !prev)}
                     setIsResetOptionOpen={setIsResetOptionOpen}
                     setIsExportModalOpen={setIsExportModalOpen}
                 />
@@ -291,8 +320,8 @@ const page: React.FC<pageProps> = () => {
                     )}
                 </div>
 
-                {isEraserOpen && (
-                    <div ref={eraserRef} className='absolute z-50 ml-24'>
+                {isEraserSizeSelectorOpen && (
+                    <div ref={eraserSizeSelectorRef} className='absolute z-50 ml-24'>
                         <EraserSizeSelectorModal
                             setEraserSize={setEraserSize}
                         />

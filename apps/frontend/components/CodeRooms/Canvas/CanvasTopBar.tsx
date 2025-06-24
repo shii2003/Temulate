@@ -1,5 +1,5 @@
 import React from 'react';
-import { MdColorLens } from 'react-icons/md';
+import { MdColorLens, MdTune } from 'react-icons/md';
 import { FaPen } from "react-icons/fa";
 import { LuEraser } from 'react-icons/lu';
 import { RiResetLeftFill } from 'react-icons/ri';
@@ -14,9 +14,11 @@ type CanvasTopBarProps = {
     brushSizeButtonRef: React.RefObject<HTMLButtonElement | null>;
     toggleSizeSelector: () => void;
     eraserSize: number;
-    isEraserOpen: boolean;
-    eraserButtonRef: React.RefObject<HTMLButtonElement | null>
-    toggleIsEraserOpen: () => void;
+    isEraserMode: boolean;
+    eraserToggleButtonRef: React.RefObject<HTMLButtonElement | null>;
+    eraserSizeButtonRef: React.RefObject<HTMLButtonElement | null>;
+    toggleEraserMode: () => void;
+    toggleEraserSizeSelector: () => void;
     setIsResetOptionOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setIsExportModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
@@ -29,9 +31,11 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
     brushSizeButtonRef,
     toggleSizeSelector,
     eraserSize,
-    isEraserOpen,
-    eraserButtonRef,
-    toggleIsEraserOpen,
+    isEraserMode,
+    eraserToggleButtonRef,
+    eraserSizeButtonRef,
+    toggleEraserMode,
+    toggleEraserSizeSelector,
     setIsResetOptionOpen,
     setIsExportModalOpen,
 }) => {
@@ -74,18 +78,34 @@ const CanvasTopBar: React.FC<CanvasTopBarProps> = ({
                         {brushSize}
                     </div>
                 </button>
+
                 <button
-                    ref={eraserButtonRef}
-                    className={`flex gap-2 items-center justify-center rounded-md border px-3 py-2   ${isEraserOpen ? "border-rose-600 bg-rose-500/20 hover:bg-rose-500/40 text-white" : " border-neutral-600 hover:bg-neutral-700/60  bg-neutral-700/20 text-neutral-300 "}`}
-                    onClick={toggleIsEraserOpen}
+                    ref={eraserToggleButtonRef}
+                    className={`flex gap-2 items-center justify-center rounded-md border px-3 py-2   ${isEraserMode ? "border-rose-600 bg-rose-500/20 hover:bg-rose-500/40 text-white" : " border-neutral-600 hover:bg-neutral-700/60  bg-neutral-700/20 text-neutral-300 "}`}
+                    onClick={toggleEraserMode}
                 >
                     <LuEraser />
                     {/* <p className='text-sm hidden md:block'>Eraser</p> */}
-                    <div className={`w-8 flex h-full rounded-md  border items-center justify-center ${isEraserOpen ? "  border-rose-600/60" : "border-neutral-700"} `}>
-                        {eraserSize}
+                    <div className={`w-8 flex h-full rounded-md  border items-center justify-center ${isEraserMode ? "  border-rose-600/60" : "border-neutral-700"} `}>
+                        {isEraserMode ? 'On ' : 'Off'}
                     </div>
                 </button>
+                {isEraserMode && (
+                    <button
+                        ref={eraserSizeButtonRef}
+                        className={`flex gap-2 items-center justify-center rounded-md border px-3 py-2  bg-indigo-500/40 border-indigo-400 hover:bg-indigo-500/60 text-white  `}
+                        onClick={toggleEraserSizeSelector}
+                    >
+                        <MdTune size={24} className='hidden md:block' />
+                        {/* <p className='text-sm hidden md:block'>Eraser</p> */}
+                        <div className="w-8 flex h-full rounded-md  border items-center justify-center border-indigo-400/80 border-neutral-700">
+                            {eraserSize}
+                        </div>
+                    </button>
+                )}
             </div>
+
+
 
             <div className="relative z-10 flex items-center justify-center gap-3">
                 <button
