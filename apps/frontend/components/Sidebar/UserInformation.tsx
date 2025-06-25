@@ -1,8 +1,6 @@
 'use client';
 import { RootState } from '@/store/store';
 import React from 'react';
-import { CgProfile } from "react-icons/cg";
-import { FiEdit2 } from "react-icons/fi";
 import { useSelector } from 'react-redux';
 
 type UserInformationProps = {
@@ -16,7 +14,7 @@ const UserInformation: React.FC<UserInformationProps> = () => {
 
     return (
         <div
-            className='flex items-center  justify-center flex-col px-6 h-10  py-2 gap-2  border border-neutral-700 rounded-full text-neutral-200 font-normal tracking-wide bg-neutral-700/30'
+            className='flex items-center justify-center flex-col px-6 py-2 gap-2 border border-neutral-700 rounded-full text-neutral-200 font-normal tracking-wide bg-neutral-700/30 h-10 min-w-[8rem]'
             style={{
                 WebkitMaskImage:
                     'radial-gradient(ellipse at center, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)',
@@ -27,9 +25,9 @@ const UserInformation: React.FC<UserInformationProps> = () => {
             }}
         >
             {isLoading ? (
-                <div className='w-24 h-20 rounded-md animate-pulse bg-neutral-600 w-10ch'></div>
+                <div className='h-4 w-24 bg-neutral-600 rounded-md animate-pulse'></div>
             ) : (
-                user?.username
+                <p className="truncate">{user?.username}</p>
             )}
         </div>
     )

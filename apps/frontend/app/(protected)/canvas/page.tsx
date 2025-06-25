@@ -7,6 +7,7 @@ import ResetOptionModal from '@/components/ui/modals/ResetOptionModal';
 import ExportImageModal from '@/components/ui/modals/ExportImageModal';
 import { toast } from 'sonner';
 import EraserSizeSelectorModal from '@/components/ui/modals/EraserSizeSelectorModal';
+import SaveOptionModal from '@/components/ui/modals/SaveOptionModal';
 
 type pageProps = {};
 
@@ -33,6 +34,7 @@ const page: React.FC<pageProps> = () => {
 
     const [isResetOptionOpen, setIsResetOptionOpen] = useState<boolean>(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState<boolean>(false);
 
     const colorPickerRef = useRef<HTMLDivElement>(null);
     const colorPickerButtonRef = useRef<HTMLButtonElement>(null);
@@ -47,8 +49,8 @@ const page: React.FC<pageProps> = () => {
     const backgroundColorHexCode = '#171717';
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const isDrawing = useRef(false);
-    const lastPos = useRef<{ x: number; y: number } | null>(null);
+    const [isDrawing, setIsDrawing] = useState<boolean>(false);
+    const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
     const strokes = useRef<Stroke[]>([]);
 
     const createEraserCursor = (size: number) => {
@@ -115,6 +117,24 @@ const page: React.FC<pageProps> = () => {
         };
     };
 
+    const getCanvasPosition = (e: MouseEvent | TouchEvent) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return { x: 0, y: 0 };
+
+        const rect = canvas.getBoundingClientRect();
+        const clientX = (e as TouchEvent).touches
+            ? (e as TouchEvent).touches[0].clientX
+            : (e as MouseEvent).clientX;
+        const clientY = (e as TouchEvent).touches
+            ? (e as TouchEvent).touches[0].clientY
+            : (e as MouseEvent).clientY;
+
+        return {
+            x: clientX - rect.left,
+            y: clientY - rect.top,
+        };
+    };
+
     const drawLine = (
         ctx: CanvasRenderingContext2D,
         stroke: Stroke,
@@ -139,6 +159,29 @@ const page: React.FC<pageProps> = () => {
         ctx.closePath();
     };
 
+    const drawImmediate = (
+        fromX: number,
+        fromY: number,
+        toX: number,
+        toY: number,
+        color: string,
+        width: number
+    ) => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(toX, toY);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        ctx.closePath();
+    };
 
     const redraw = useCallback(() => {
         const canvas = canvasRef.current;
@@ -153,42 +196,63 @@ const page: React.FC<pageProps> = () => {
         }
     }, []);
 
+    const startDrawing = useCallback((e: MouseEvent | TouchEvent) => {
+        setIsDrawing(true);
+        const position = getCanvasPosition(e);
+        setLastPosition(position);
+    }, [])
+
+    const draw = useCallback((e: MouseEvent | TouchEvent) => {
+        if (!isDrawing || !lastPosition) return;
+
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+
+        const currentPosition = getCanvasPosition(e);
+        const currentColor = isEraserMode ? backgroundColorHexCode : selectedColor;
+        const currentWidth = isEraserMode ? eraserSize : brushSize;
+
+        drawImmediate(
+            lastPosition.x,
+            lastPosition.y,
+            currentPosition.x,
+            currentPosition.y,
+            currentColor,
+            currentWidth
+        );
+
+        const normalizedStart = getNormalizedMousePos({
+            clientX: lastPosition.x + canvas.getBoundingClientRect().left,
+            clientY: lastPosition.y + canvas.getBoundingClientRect().top
+        } as any);
+
+        const normalizedEnd = getNormalizedMousePos({
+            clientX: currentPosition.x + canvas.getBoundingClientRect().left,
+            clientY: currentPosition.y + canvas.getBoundingClientRect().top
+        } as any);
+
+        const stroke: Stroke = {
+            startX: normalizedStart.x,
+            startY: normalizedStart.y,
+            endX: normalizedEnd.x,
+            endY: normalizedEnd.y,
+            color: currentColor,
+            width: currentWidth,
+            isEraser: isEraserMode
+        };
+
+        strokes.current.push(stroke);
+        setLastPosition(currentPosition);
+    }, [isDrawing, lastPosition, selectedColor, brushSize, isEraserMode, eraserSize, backgroundColorHexCode]);
+
+    const stopDrawing = useCallback(() => {
+        setIsDrawing(false);
+        setLastPosition(null);
+    }, []);
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const startDrawing = (e: MouseEvent | TouchEvent) => {
-            isDrawing.current = true;
-            lastPos.current = getNormalizedMousePos(e);
-        };
-
-        const draw = (e: MouseEvent | TouchEvent) => {
-            if (!isDrawing.current || !lastPos.current) return;
-            const pos = getNormalizedMousePos(e);
-
-            const stroke: Stroke = {
-                startX: lastPos.current.x,
-                startY: lastPos.current.y,
-                endX: pos.x,
-                endY: pos.y,
-                color: isEraserMode ? backgroundColorHexCode : selectedColor,
-                width: isEraserMode ? eraserSize : brushSize,
-                isEraser: isEraserMode
-            };
-
-            strokes.current.push(stroke);
-            drawLine(ctx, stroke, canvas.width, canvas.height);
-            lastPos.current = pos;
-        };
-
-        const stopDrawing = () => {
-            isDrawing.current = false;
-            lastPos.current = null;
-        };
-
+        if (!canvas) { return; }
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         window.addEventListener('mouseup', stopDrawing);
@@ -206,7 +270,7 @@ const page: React.FC<pageProps> = () => {
             canvas.removeEventListener('touchmove', draw);
             window.removeEventListener('touchend', stopDrawing);
         };
-    }, [selectedColor, brushSize, isEraserMode, eraserSize]);
+    }, [startDrawing, draw, stopDrawing]);
 
     useEffect(() => {
         const handleClickOutsideColorPicker = (event: MouseEvent) => {
@@ -287,6 +351,7 @@ const page: React.FC<pageProps> = () => {
                     eraserToggleButtonRef={eraserToggleButtonRef}
                     toggleEraserSizeSelector={() => setIsEraserSizeSelectorOpen(prev => !prev)}
                     setIsResetOptionOpen={setIsResetOptionOpen}
+                    setIsSaveModalOpen={setIsSaveModalOpen}
                     setIsExportModalOpen={setIsExportModalOpen}
                 />
             </div>
@@ -335,7 +400,11 @@ const page: React.FC<pageProps> = () => {
                         handleResetCanvas={handleResetCanvas}
                     />
                 )}
-
+                {isSaveModalOpen &&
+                    <SaveOptionModal
+                        setIsSaveModalOpen={setIsSaveModalOpen}
+                    />
+                }
                 {isExportModalOpen &&
                     <ExportImageModal
                         setIsExportModalOpen={setIsExportModalOpen}
@@ -356,3 +425,4 @@ const page: React.FC<pageProps> = () => {
 };
 
 export default page;
+
