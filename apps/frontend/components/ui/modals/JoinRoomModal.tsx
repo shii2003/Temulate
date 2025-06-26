@@ -126,7 +126,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
 
     return (
         <div className='fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50'>
-            <div className='flex flex-col bg-neutral-800 rounded-md relative w-56 md:w-96 px-4 py-2'>
+            <div className='flex flex-col bg-neutral-800 rounded-md relative w-96 px-4 py-2'>
                 <button
                     className='absolute top-2 right-2'
                     onClick={onClose}
