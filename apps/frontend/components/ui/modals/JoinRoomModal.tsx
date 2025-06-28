@@ -45,7 +45,7 @@ const JoinRoomModal: React.FC<JoinRoomModalProps> = ({ isOpen, onClose }) => {
         setIsLoading(false);
         setError(null);
         onClose();
-        router.push(`/codeRooms/${data.roomId}`);
+        router.push(`/room/${data.roomId}`);
     }, [onClose, router]);
 
     const handleError = useCallback((data: { message: string }) => {

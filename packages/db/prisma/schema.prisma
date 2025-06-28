@@ -73,6 +73,7 @@ model DrawingAction {
   y         Float?
   color     String?
   width     Float?
+  isEraser  Boolean?
   timestamp DateTime @default(now())
 
   room Room @relation(fields: [roomId], references: [id])

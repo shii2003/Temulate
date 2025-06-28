@@ -268,7 +268,6 @@ const useDraw = (color: string = 'black', lineWidth: number = 2, storageKey: str
                 console.log('Set original dimensions:', originalDimensions.current);
             }
 
-            // Set canvas size with device pixel ratio for crisp rendering
             const canvasWidth = displayWidth * dpr;
             const canvasHeight = displayHeight * dpr;
 

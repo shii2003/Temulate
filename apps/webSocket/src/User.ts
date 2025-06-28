@@ -18,6 +18,9 @@ export class User {
     public username: string;
     private ws: WebSocket;
     private roomId?: number;
+    private lastStrokeColor: string | null = null;
+    private lastStrokeWidth: number | null = null;
+    private lastStrokeIsEraser: boolean = false;
 
     constructor(ws: WebSocket, id: number, username: string) {
         this.id = id;
@@ -415,6 +418,10 @@ export class User {
             return;
         }
 
+        this.lastStrokeColor = color;
+        this.lastStrokeWidth = width;
+        this.lastStrokeIsEraser = color === '#171717';
+
         try {
             RoomManager.getInstance().broadcastMessage(
                 this.roomId,
@@ -422,7 +429,11 @@ export class User {
                     type: 'draw-start',
                     payload: {
                         userId: this.id,
-                        x, y, color, width
+                        x,
+                        y,
+                        color,
+                        width,
+                        isEraser: this.lastStrokeIsEraser
                     }
                 },
                 this
@@ -445,7 +456,7 @@ export class User {
                         message: "an error occured."
                     }
                 }
-            )
+            );
         }
     }
 
@@ -465,7 +476,14 @@ export class User {
                 this.roomId,
                 {
                     type: 'draw-move',
-                    payload: { userId: this.id, x, y }
+                    payload: {
+                        userId: this.id,
+                        x,
+                        y,
+                        color: this.lastStrokeColor,
+                        width: this.lastStrokeWidth,
+                        isEraser: this.lastStrokeIsEraser,
+                    }
                 },
                 this
             );

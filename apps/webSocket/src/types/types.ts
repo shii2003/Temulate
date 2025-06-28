@@ -51,7 +51,8 @@ export type OutgoingMessage = {
         x: number,
         y: number,
         color: string,
-        width: number
+        width: number,
+        isEraser: boolean,
     }
 } | {
     type: 'draw-move',
@@ -59,7 +60,10 @@ export type OutgoingMessage = {
     {
         userId: number,
         x: number,
-        y: number
+        y: number,
+        color: string | null;
+        width: number | null;
+        isEraser: boolean;
     }
 } | {
     type: 'draw-end',
@@ -77,6 +81,6 @@ export type IncomingMessage =
     | { type: 'leave-room'; payload: {} }
     | { type: 'send-message'; payload: { content: string } }
     | { type: 'get-room-users'; payload: { roomId: number } }
-    | { type: 'draw-start'; payload: { x: number, y: number, color: string, width: number } }
+    | { type: 'draw-start'; payload: { x: number, y: number, color: string, width: number, isEraser: boolean } }
     | { type: 'draw-move'; payload: { x: number, y: number } }
     | { type: 'draw-end'; payload: {} };

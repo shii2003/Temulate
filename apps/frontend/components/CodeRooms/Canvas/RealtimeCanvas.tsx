@@ -3,13 +3,17 @@ import CanvasTopBar from '@/components/CodeRooms/Canvas/CanvasTopBar';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import ResetOptionModal from '@/components/ui/modals/ResetOptionModal';
 import ExportImageModal from '@/components/ui/modals/ExportImageModal';
-import { toast } from 'sonner';
 import EraserSizeSelectorModal from '@/components/ui/modals/EraserSizeSelectorModal';
 import SaveOptionModal from '@/components/ui/modals/SaveOptionModal';
 import SizeSelectorModal from '@/components/ui/modals/SizeSelectorModal';
 import ColorPickerModal from '@/components/ui/modals/ColorPickerModal';
+import { useWebSocket } from "@/hooks/useWebSocket";
+import { useRealtimeDrawing } from "@/hooks/useRealtimeDrawing";
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 
-type pageProps = {};
+
+type pageProps = { roomId: number };
 
 type Stroke = {
     startX: number;
@@ -21,7 +25,15 @@ type Stroke = {
     isEraser?: boolean;
 };
 
-const page: React.FC<pageProps> = () => {
+const page: React.FC<pageProps> = ({ roomId }) => {
+
+    const { user } = useSelector((state: RootState) => state.auth);
+    const {
+        sendDrawStart,
+        sendDrawMove,
+        sendDrawEnd,
+    } = useWebSocket();
+
     const [selectedColor, setSelectedColor] = useState<string>("#ffffff");
     const [isColorPickerOpen, setIsColorPickerOpen] = useState<boolean>(false);
 
@@ -200,7 +212,13 @@ const page: React.FC<pageProps> = () => {
         setIsDrawing(true);
         const position = getCanvasPosition(e);
         setLastPosition(position);
-    }, [])
+
+        const normalized = getNormalizedMousePos(e);
+        const currentColor = isEraserMode ? backgroundColorHexCode : selectedColor;
+        const currentWidth = isEraserMode ? eraserSize : brushSize;
+
+        sendDrawStart(normalized.x, normalized.y, currentColor, currentWidth, isEraserMode);
+    }, [selectedColor, brushSize, isEraserMode, eraserSize]);
 
     const draw = useCallback((e: MouseEvent | TouchEvent) => {
         if (!isDrawing || !lastPosition) return;
@@ -221,15 +239,16 @@ const page: React.FC<pageProps> = () => {
             currentWidth
         );
 
+        const normalized = getNormalizedMousePos(e);
+
+        sendDrawMove(normalized.x, normalized.y, currentColor, currentWidth, isEraserMode);
+
         const normalizedStart = getNormalizedMousePos({
             clientX: lastPosition.x + canvas.getBoundingClientRect().left,
-            clientY: lastPosition.y + canvas.getBoundingClientRect().top
+            clientY: lastPosition.y + canvas.getBoundingClientRect().top,
         } as any);
 
-        const normalizedEnd = getNormalizedMousePos({
-            clientX: currentPosition.x + canvas.getBoundingClientRect().left,
-            clientY: currentPosition.y + canvas.getBoundingClientRect().top
-        } as any);
+        const normalizedEnd = normalized;
 
         const stroke: Stroke = {
             startX: normalizedStart.x,
@@ -238,17 +257,47 @@ const page: React.FC<pageProps> = () => {
             endY: normalizedEnd.y,
             color: currentColor,
             width: currentWidth,
-            isEraser: isEraserMode
+            isEraser: isEraserMode,
         };
 
         strokes.current.push(stroke);
         setLastPosition(currentPosition);
-    }, [isDrawing, lastPosition, selectedColor, brushSize, isEraserMode, eraserSize, backgroundColorHexCode]);
+    }, [isDrawing, lastPosition, selectedColor, brushSize, isEraserMode, eraserSize]);
 
     const stopDrawing = useCallback(() => {
+        if (isDrawing) {
+            sendDrawEnd();
+        }
         setIsDrawing(false);
         setLastPosition(null);
-    }, []);
+    }, [isDrawing]);
+
+
+    useRealtimeDrawing({
+        drawRemoteLine: (startX, startY, endX, endY, color, width) => {
+            const canvas = canvasRef.current;
+            if (!canvas) return;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            const actualStartX = startX * canvas.width;
+            const actualStartY = startY * canvas.height;
+            const actualEndX = endX * canvas.width;
+            const actualEndY = endY * canvas.height;
+
+            const base = Math.min(canvas.width, canvas.height);
+            const scaledWidth = width * Math.max(0.5, base / 500);
+
+            ctx.beginPath();
+            ctx.moveTo(actualStartX, actualStartY);
+            ctx.lineTo(actualEndX, actualEndY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = scaledWidth;
+            ctx.lineCap = "round";
+            ctx.stroke();
+            ctx.closePath();
+        },
+    });
 
     useEffect(() => {
         const canvas = canvasRef.current;

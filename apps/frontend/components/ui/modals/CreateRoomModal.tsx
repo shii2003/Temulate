@@ -39,7 +39,7 @@ const CreateRoomModal: React.FC<CreateRoomModalProps> = ({ isOpen, onClose }) =>
         setIsLoading(false);
         setError(null);
         onClose();
-        router.push(`/codeRooms/${data.roomId}`);
+        router.push(`/room/${data.roomId}`);
     }, [toastId, onClose, router]);
 
     const handleError = useCallback((data: { message: string }) => {

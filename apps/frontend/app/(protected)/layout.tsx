@@ -9,7 +9,8 @@ export default function ProtectedLayout({
 }) {
     const pathname = usePathname();
 
-    const isWorkspaceRoute = pathname.startsWith("/codeRooms");
+    const isWorkspaceRoute = pathname.startsWith("/room");
+
 
     return (
         <div className="flex h-screen overflow-hidden">

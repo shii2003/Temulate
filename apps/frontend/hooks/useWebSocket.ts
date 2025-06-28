@@ -49,12 +49,12 @@ export const useWebSocket = () => {
     const sendMessage = (content: string) => {
         WebSocketManager.getInstance().send("send-message", { content });
     };
-    const sendDrawStart = (x: number, y: number, color: string, width: number) => {
-        WebSocketManager.getInstance().send("draw-start", { x, y, color, width });
+    const sendDrawStart = (x: number, y: number, color: string, width: number, isEraser: boolean) => {
+        WebSocketManager.getInstance().send("draw-start", { x, y, color, width, isEraser });
     };
 
-    const sendDrawMove = (x: number, y: number) => {
-        WebSocketManager.getInstance().send("draw-move", { x, y });
+    const sendDrawMove = (x: number, y: number, color: string, width: number, isEraser: boolean) => {
+        WebSocketManager.getInstance().send("draw-move", { x, y, color, width, isEraser });
     };
 
     const sendDrawEnd = () => {
@@ -89,11 +89,11 @@ export const useWebSocket = () => {
     const onRoomUsers = (callback: (data: { users: { id: number; username: string }[] }) => void) => {
         WebSocketManager.getInstance().on('room-users', callback)
     };
-    const onDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number }) => void) => {
+    const onDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number, isEraser: boolean }) => void) => {
         WebSocketManager.getInstance().on("draw-start", callback);
     };
 
-    const onDrawMove = (callback: (data: { userId: number, x: number, y: number }) => void) => {
+    const onDrawMove = (callback: (data: { userId: number, x: number, y: number, color: string, width: number, isEraser: boolean }) => void) => {
         WebSocketManager.getInstance().on("draw-move", callback);
     };
 
@@ -129,11 +129,11 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().off('room-users', callback);
     };
 
-    const offDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number }) => void) => {
+    const offDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number, isEraser: boolean }) => void) => {
         WebSocketManager.getInstance().off("draw-start", callback);
     };
 
-    const offDrawMove = (callback: (data: { userId: number, x: number, y: number }) => void) => {
+    const offDrawMove = (callback: (data: { userId: number, x: number, y: number, color: string, width: number, isEraser: boolean }) => void) => {
         WebSocketManager.getInstance().off("draw-move", callback);
     };
 
