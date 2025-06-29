@@ -72,7 +72,7 @@ model DrawingAction {
   x         Float?
   y         Float?
   color     String?
-  width     Float?
+  width     Float? // Proportional width (normalized to reference canvas size of 1000px)
   isEraser  Boolean?
   timestamp DateTime @default(now())
 

@@ -25,6 +25,9 @@ type Stroke = {
     isEraser?: boolean;
 };
 
+// Reference canvas size for proportional calculations
+const REFERENCE_CANVAS_SIZE = 1000;
+
 const page: React.FC<pageProps> = ({ roomId }) => {
 
     const { user } = useSelector((state: RootState) => state.auth);
@@ -65,6 +68,18 @@ const page: React.FC<pageProps> = ({ roomId }) => {
     const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
     const strokes = useRef<Stroke[]>([]);
 
+    // Convert absolute size to proportional size (percentage of reference canvas)
+    const getProportionalSize = (absoluteSize: number, canvasWidth: number, canvasHeight: number): number => {
+        const base = Math.min(canvasWidth, canvasHeight);
+        return (absoluteSize / base) * REFERENCE_CANVAS_SIZE;
+    };
+
+    // Convert proportional size back to absolute size for current canvas
+    const getAbsoluteSize = (proportionalSize: number, canvasWidth: number, canvasHeight: number): number => {
+        const base = Math.min(canvasWidth, canvasHeight);
+        return (proportionalSize / REFERENCE_CANVAS_SIZE) * base;
+    };
+
     const createEraserCursor = (size: number) => {
         const adjustedSize = Math.max(16, Math.min(size, 64));
         const svg = `
@@ -103,8 +118,9 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         if (!canvas) return;
 
         if (isEraserMode) {
-            const cursorUrl = createEraserCursor(eraserSize);
-            const centerOffset = Math.max(8, Math.min(eraserSize / 2, 32));
+            const currentWidth = getAbsoluteSize(eraserSize, canvas.width, canvas.height);
+            const cursorUrl = createEraserCursor(currentWidth);
+            const centerOffset = Math.max(8, Math.min(currentWidth / 2, 32));
             canvas.style.cursor = `url('${cursorUrl}') ${centerOffset} ${centerOffset}, crosshair`;
         } else {
             canvas.style.cursor = 'crosshair';
@@ -158,14 +174,14 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         const endX = stroke.endX * canvasWidth;
         const endY = stroke.endY * canvasHeight;
 
-        const base = Math.min(canvasWidth, canvasHeight);
-        const scaledWidth = stroke.width * Math.max(0.5, base / 500);
+        // Use proportional width directly (it's already normalized)
+        const absoluteWidth = getAbsoluteSize(stroke.width, canvasWidth, canvasHeight);
 
         ctx.beginPath();
         ctx.moveTo(startX, startY);
         ctx.lineTo(endX, endY);
         ctx.strokeStyle = stroke.color;
-        ctx.lineWidth = scaledWidth;
+        ctx.lineWidth = absoluteWidth;
         ctx.lineCap = 'round';
         ctx.stroke();
         ctx.closePath();
@@ -177,7 +193,7 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         toX: number,
         toY: number,
         color: string,
-        width: number
+        proportionalWidth: number
     ) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -185,11 +201,14 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Convert proportional width to absolute width for current canvas
+        const absoluteWidth = getAbsoluteSize(proportionalWidth, canvas.width, canvas.height);
+
         ctx.beginPath();
         ctx.moveTo(fromX, fromY);
         ctx.lineTo(toX, toY);
         ctx.strokeStyle = color;
-        ctx.lineWidth = width;
+        ctx.lineWidth = absoluteWidth;
         ctx.lineCap = 'round';
         ctx.stroke();
         ctx.closePath();
@@ -215,9 +234,17 @@ const page: React.FC<pageProps> = ({ roomId }) => {
 
         const normalized = getNormalizedMousePos(e);
         const currentColor = isEraserMode ? backgroundColorHexCode : selectedColor;
-        const currentWidth = isEraserMode ? eraserSize : brushSize;
 
-        sendDrawStart(normalized.x, normalized.y, currentColor, currentWidth, isEraserMode);
+        // Convert absolute size to proportional size for transmission
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const proportionalWidth = getProportionalSize(
+            isEraserMode ? eraserSize : brushSize,
+            canvas.width,
+            canvas.height
+        );
+
+        sendDrawStart(normalized.x, normalized.y, currentColor, proportionalWidth, isEraserMode);
     }, [selectedColor, brushSize, isEraserMode, eraserSize]);
 
     const draw = useCallback((e: MouseEvent | TouchEvent) => {
@@ -228,7 +255,13 @@ const page: React.FC<pageProps> = ({ roomId }) => {
 
         const currentPosition = getCanvasPosition(e);
         const currentColor = isEraserMode ? backgroundColorHexCode : selectedColor;
-        const currentWidth = isEraserMode ? eraserSize : brushSize;
+
+        // Convert absolute size to proportional size for transmission
+        const proportionalWidth = getProportionalSize(
+            isEraserMode ? eraserSize : brushSize,
+            canvas.width,
+            canvas.height
+        );
 
         drawImmediate(
             lastPosition.x,
@@ -236,12 +269,12 @@ const page: React.FC<pageProps> = ({ roomId }) => {
             currentPosition.x,
             currentPosition.y,
             currentColor,
-            currentWidth
+            proportionalWidth
         );
 
         const normalized = getNormalizedMousePos(e);
 
-        sendDrawMove(normalized.x, normalized.y, currentColor, currentWidth, isEraserMode);
+        sendDrawMove(normalized.x, normalized.y, currentColor, proportionalWidth, isEraserMode);
 
         const normalizedStart = getNormalizedMousePos({
             clientX: lastPosition.x + canvas.getBoundingClientRect().left,
@@ -256,7 +289,7 @@ const page: React.FC<pageProps> = ({ roomId }) => {
             endX: normalizedEnd.x,
             endY: normalizedEnd.y,
             color: currentColor,
-            width: currentWidth,
+            width: proportionalWidth, // Store proportional width
             isEraser: isEraserMode,
         };
 
@@ -274,7 +307,7 @@ const page: React.FC<pageProps> = ({ roomId }) => {
 
 
     useRealtimeDrawing({
-        drawRemoteLine: (startX, startY, endX, endY, color, width) => {
+        drawRemoteLine: (startX, startY, endX, endY, color, proportionalWidth) => {
             const canvas = canvasRef.current;
             if (!canvas) return;
             const ctx = canvas.getContext("2d");
@@ -285,14 +318,14 @@ const page: React.FC<pageProps> = ({ roomId }) => {
             const actualEndX = endX * canvas.width;
             const actualEndY = endY * canvas.height;
 
-            const base = Math.min(canvas.width, canvas.height);
-            const scaledWidth = width * Math.max(0.5, base / 500);
+            // Convert proportional width to absolute width for current canvas
+            const absoluteWidth = getAbsoluteSize(proportionalWidth, canvas.width, canvas.height);
 
             ctx.beginPath();
             ctx.moveTo(actualStartX, actualStartY);
             ctx.lineTo(actualEndX, actualEndY);
             ctx.strokeStyle = color;
-            ctx.lineWidth = scaledWidth;
+            ctx.lineWidth = absoluteWidth;
             ctx.lineCap = "round";
             ctx.stroke();
             ctx.closePath();

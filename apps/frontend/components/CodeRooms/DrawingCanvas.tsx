@@ -62,40 +62,35 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
 
     // Custom redraw function that includes remote drawings
     const redrawWithRemoteActions = useCallback(() => {
-        // First redraw local drawings
-        redrawCanvas();
-
-        // Then redraw remote drawing actions
         const canvas = canvasRef.current;
-        if (!canvas || remoteDrawingActions.current.length === 0) return;
+        if (!canvas) return;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        console.log('Redrawing', remoteDrawingActions.current.length, 'remote actions');
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+        // Redraw all remote actions with current canvas size
         remoteDrawingActions.current.forEach(action => {
-            if (action.type === 'line') {
-                // Convert normalized coordinates to current canvas coordinates
-                const startX = action.startX * canvas.width;
-                const startY = action.startY * canvas.height;
-                const endX = action.endX * canvas.width;
-                const endY = action.endY * canvas.height;
+            const startX = action.startX * canvas.width;
+            const startY = action.startY * canvas.height;
+            const endX = action.endX * canvas.width;
+            const endY = action.endY * canvas.height;
 
-                // Scale line width proportionally
-                const baseSize = Math.min(canvas.width, canvas.height);
-                const scaleFactor = baseSize / 500;
-                const scaledWidth = action.width * Math.max(0.5, scaleFactor);
+            // Convert proportional width to absolute width for current canvas
+            const REFERENCE_CANVAS_SIZE = 1000;
+            const base = Math.min(canvas.width, canvas.height);
+            const absoluteWidth = (action.width / REFERENCE_CANVAS_SIZE) * base;
 
-                ctx.beginPath();
-                ctx.moveTo(startX, startY);
-                ctx.lineTo(endX, endY);
-                ctx.strokeStyle = action.color;
-                ctx.lineWidth = scaledWidth;
-                ctx.lineCap = 'round';
-                ctx.stroke();
-                ctx.closePath();
-            }
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.strokeStyle = action.color;
+            ctx.lineWidth = absoluteWidth;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+            ctx.closePath();
         });
     }, [redrawCanvas, canvasRef]);
 
@@ -125,7 +120,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
             x: number,
             y: number,
             color: string,
-            width: number
+            width: number,
+            isEraser: boolean
         }) => {
             if (!canvasRef.current || data.userId === user?.id) return;
 
@@ -133,20 +129,27 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
             const currentX = data.x * canvasRef.current.width;
             const currentY = data.y * canvasRef.current.height;
 
-            // Calculate appropriate line width for current canvas size
-            const baseSize = Math.min(canvasRef.current.width, canvasRef.current.height);
-            const scaleFactor = baseSize / 500;
-            const scaledWidth = data.width * Math.max(0.5, scaleFactor);
+            // Convert proportional width to absolute width for current canvas
+            const REFERENCE_CANVAS_SIZE = 1000;
+            const base = Math.min(canvasRef.current.width, canvasRef.current.height);
+            const absoluteWidth = (data.width / REFERENCE_CANVAS_SIZE) * base;
 
             remoteDrawings.current[data.userId] = {
                 color: data.color,
-                width: scaledWidth,
+                width: absoluteWidth,
                 lastX: currentX,
                 lastY: currentY
             };
         };
 
-        const handleRemoteDrawMove = (data: { userId: number, x: number, y: number }) => {
+        const handleRemoteDrawMove = (data: {
+            userId: number,
+            x: number,
+            y: number,
+            color: string,
+            width: number,
+            isEraser: boolean
+        }) => {
             const canvas = canvasRef.current;
             if (!canvas || data.userId === user?.id) return;
 
@@ -157,14 +160,19 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
             const currentX = data.x * canvas.width;
             const currentY = data.y * canvas.height;
 
+            // Convert proportional width to absolute width for current canvas
+            const REFERENCE_CANVAS_SIZE = 1000;
+            const base = Math.min(canvas.width, canvas.height);
+            const absoluteWidth = (data.width / REFERENCE_CANVAS_SIZE) * base;
+
             // Draw the line segment
             drawRemoteLine(
                 userDrawing.lastX,
                 userDrawing.lastY,
                 currentX,
                 currentY,
-                userDrawing.color,
-                userDrawing.width
+                data.color,
+                absoluteWidth
             );
 
             // Store this action for redrawing on resize
@@ -174,8 +182,8 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
                 startY: userDrawing.lastY / canvas.height,
                 endX: currentX / canvas.width,
                 endY: currentY / canvas.height,
-                color: userDrawing.color,
-                width: userDrawing.width / Math.max(0.5, Math.min(canvas.width, canvas.height) / 500), // Store original width
+                color: data.color,
+                width: data.width, // Store proportional width
                 userId: data.userId
             };
 
@@ -270,8 +278,13 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
         const normalizedX = position.x / canvas.width;
         const normalizedY = position.y / canvas.height;
 
+        // Convert absolute size to proportional size for transmission
+        const REFERENCE_CANVAS_SIZE = 1000;
+        const base = Math.min(canvas.width, canvas.height);
+        const proportionalWidth = (lineWidth / base) * REFERENCE_CANVAS_SIZE;
+
         // Send normalized coordinates to other users
-        sendDrawStart(normalizedX, normalizedY, color, lineWidth);
+        sendDrawStart(normalizedX, normalizedY, color, proportionalWidth, false);
     }, [color, lineWidth, sendDrawStart]);
 
     const draw = useCallback((event: React.MouseEvent) => {
@@ -288,9 +301,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
         const normalizedX = position.x / canvas.width;
         const normalizedY = position.y / canvas.height;
 
+        // Convert absolute size to proportional size for transmission
+        const REFERENCE_CANVAS_SIZE = 1000;
+        const base = Math.min(canvas.width, canvas.height);
+        const proportionalWidth = (lineWidth / base) * REFERENCE_CANVAS_SIZE;
+
         // Send normalized coordinates to other users
-        sendDrawMove(normalizedX, normalizedY);
-    }, [sendDrawMove]);
+        sendDrawMove(normalizedX, normalizedY, color, proportionalWidth, false);
+    }, [sendDrawMove, color, lineWidth]);
 
     const stopDrawing = useCallback(() => {
         sendDrawEnd();
@@ -313,7 +331,12 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
             const normalizedX = position.x / canvas.width;
             const normalizedY = position.y / canvas.height;
 
-            sendDrawStart(normalizedX, normalizedY, color, lineWidth);
+            // Convert absolute size to proportional size for transmission
+            const REFERENCE_CANVAS_SIZE = 1000;
+            const base = Math.min(canvas.width, canvas.height);
+            const proportionalWidth = (lineWidth / base) * REFERENCE_CANVAS_SIZE;
+
+            sendDrawStart(normalizedX, normalizedY, color, proportionalWidth, false);
         }
     }, [color, lineWidth, sendDrawStart]);
 
@@ -333,9 +356,14 @@ const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ roomId }) => {
             const normalizedX = position.x / canvas.width;
             const normalizedY = position.y / canvas.height;
 
-            sendDrawMove(normalizedX, normalizedY);
+            // Convert absolute size to proportional size for transmission
+            const REFERENCE_CANVAS_SIZE = 1000;
+            const base = Math.min(canvas.width, canvas.height);
+            const proportionalWidth = (lineWidth / base) * REFERENCE_CANVAS_SIZE;
+
+            sendDrawMove(normalizedX, normalizedY, color, proportionalWidth, false);
         }
-    }, [sendDrawMove]);
+    }, [sendDrawMove, color, lineWidth]);
 
     const handleTouchEnd = useCallback((event: React.TouchEvent) => {
         event.preventDefault();
