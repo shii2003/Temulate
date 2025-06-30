@@ -9,7 +9,7 @@ export interface User {
 }
 
 type OnlineUsersListProps = {
-    onlineUsers: User[],
+    onlineUsers: User[] | undefined,
 };
 
 const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
@@ -18,6 +18,8 @@ const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [visibleItems, setVisibleItems] = useState(0);
 
+    const safeOnlineUsers = Array.isArray(onlineUsers) ? onlineUsers : [];
+    console.log(`here is onlineUsers: ${onlineUsers}`)
 
     useEffect(() => {
         const calculateVisibleItems = () => {
@@ -42,18 +44,18 @@ const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
     }
 
     const handleNext = () => {
-        setCurrentIndex(prev => Math.min(prev + 1, Math.max(onlineUsers.length - visibleItems, 0)));
+        setCurrentIndex(prev => Math.min(prev + 1, Math.max(safeOnlineUsers.length - visibleItems, 0)));
     }
 
     const showPrev = currentIndex > 0;
-    const showNext = currentIndex < Math.max(onlineUsers.length - visibleItems, 0);
+    const showNext = currentIndex < Math.max(safeOnlineUsers.length - visibleItems, 0);
 
     return (
         <div className='relative flex flex-col items-center gap-1 border-b border-neutral-700 h-[8rem]'>
             <div className='flex items-center text-sm h-[3rem] px-4 py-1 gap-2 w-full text-indigo-300 font-medium'>
                 <p className='text-neutral-500'>Online Users: </p>
                 <p className='px-4 py-1 rounded-2xl shadow-sm shadow-neutral-600 font-semibold text-base'>
-                    {onlineUsers.length}
+                    {safeOnlineUsers.length}
                 </p>
             </div>
 
@@ -74,7 +76,7 @@ const OnlineUsersList: React.FC<OnlineUsersListProps> = ({ onlineUsers }) => {
                             transform: `translateX(-${currentIndex * 84}px)`
                         }}
                     >
-                        {onlineUsers.map((user) => (
+                        {safeOnlineUsers.map((user) => (
                             <OnlineUserInfo
                                 key={user.id}
                                 username={user.username}

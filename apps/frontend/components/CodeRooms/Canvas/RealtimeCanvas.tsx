@@ -25,7 +25,6 @@ type Stroke = {
     isEraser?: boolean;
 };
 
-// Reference canvas size for proportional calculations
 const REFERENCE_CANVAS_SIZE = 1000;
 
 const page: React.FC<pageProps> = ({ roomId }) => {
@@ -68,13 +67,11 @@ const page: React.FC<pageProps> = ({ roomId }) => {
     const [lastPosition, setLastPosition] = useState<{ x: number; y: number } | null>(null);
     const strokes = useRef<Stroke[]>([]);
 
-    // Convert absolute size to proportional size (percentage of reference canvas)
     const getProportionalSize = (absoluteSize: number, canvasWidth: number, canvasHeight: number): number => {
         const base = Math.min(canvasWidth, canvasHeight);
         return (absoluteSize / base) * REFERENCE_CANVAS_SIZE;
     };
 
-    // Convert proportional size back to absolute size for current canvas
     const getAbsoluteSize = (proportionalSize: number, canvasWidth: number, canvasHeight: number): number => {
         const base = Math.min(canvasWidth, canvasHeight);
         return (proportionalSize / REFERENCE_CANVAS_SIZE) * base;
@@ -174,7 +171,6 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         const endX = stroke.endX * canvasWidth;
         const endY = stroke.endY * canvasHeight;
 
-        // Use proportional width directly (it's already normalized)
         const absoluteWidth = getAbsoluteSize(stroke.width, canvasWidth, canvasHeight);
 
         ctx.beginPath();
@@ -201,7 +197,6 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Convert proportional width to absolute width for current canvas
         const absoluteWidth = getAbsoluteSize(proportionalWidth, canvas.width, canvas.height);
 
         ctx.beginPath();
@@ -235,7 +230,6 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         const normalized = getNormalizedMousePos(e);
         const currentColor = isEraserMode ? backgroundColorHexCode : selectedColor;
 
-        // Convert absolute size to proportional size for transmission
         const canvas = canvasRef.current;
         if (!canvas) return;
         const proportionalWidth = getProportionalSize(
@@ -256,7 +250,6 @@ const page: React.FC<pageProps> = ({ roomId }) => {
         const currentPosition = getCanvasPosition(e);
         const currentColor = isEraserMode ? backgroundColorHexCode : selectedColor;
 
-        // Convert absolute size to proportional size for transmission
         const proportionalWidth = getProportionalSize(
             isEraserMode ? eraserSize : brushSize,
             canvas.width,
@@ -289,7 +282,7 @@ const page: React.FC<pageProps> = ({ roomId }) => {
             endX: normalizedEnd.x,
             endY: normalizedEnd.y,
             color: currentColor,
-            width: proportionalWidth, // Store proportional width
+            width: proportionalWidth,
             isEraser: isEraserMode,
         };
 
@@ -318,7 +311,6 @@ const page: React.FC<pageProps> = ({ roomId }) => {
             const actualEndX = endX * canvas.width;
             const actualEndY = endY * canvas.height;
 
-            // Convert proportional width to absolute width for current canvas
             const absoluteWidth = getAbsoluteSize(proportionalWidth, canvas.width, canvas.height);
 
             ctx.beginPath();

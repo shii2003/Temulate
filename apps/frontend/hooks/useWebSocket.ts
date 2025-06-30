@@ -1,7 +1,13 @@
+import { addRoomMember, removeRoomMember, resetRoomState, setCurrentRoom, setRoomMembers } from "@/store/features/room/roomSlice";
 import { RootState } from "@/store/store";
 import { WebSocketManager } from "@/utils/WebSocketManager";
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+
+interface User {
+    id: number;
+    username: string;
+};
 
 const WEBSOCKET_URL = "ws://localhost:8080";
 
@@ -10,6 +16,7 @@ export const useWebSocket = () => {
     const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
 
     const user = useSelector((state: RootState) => state.auth.user);
+    const dispatch = useDispatch();
     const currentRoomIdRef = useRef<number | null>(null);
 
     useEffect(() => {
@@ -22,14 +29,41 @@ export const useWebSocket = () => {
             setConnectionStatus(ws.isConnected() ? 'connected' : 'disconnected');
         };
 
+        const handleRoomJoined = (data: { roomId: number; roomName: string }) => {
+            dispatch(setCurrentRoom(data.roomId));
+        }
+        const handleRoomLeft = () => {
+            dispatch(resetRoomState());
+        }
+
+        const handleRoomUsers = (data: User[]) => {
+            dispatch(setRoomMembers(data));
+        }
+
+        const handleUserJoined = (data: { user: User }) => {
+            dispatch(addRoomMember(data.user));
+        }
+        const handleUserLeft = (data: { userId: number; username: string }) => {
+            dispatch(removeRoomMember(data.userId))
+        }
         ws.on('connected', updateStatus);
         ws.on('disconnected', updateStatus);
+        ws.on('room-joined', handleRoomJoined);
+        ws.on('room-left', handleRoomLeft);
+        ws.on('room-users', handleRoomUsers);
+        ws.on('user-joined', handleUserJoined);
+        ws.on('user-left', handleUserLeft);
 
         return () => {
             ws.off('connected', updateStatus);
             ws.off('disconnected', updateStatus);
+            ws.off('room-joined', handleRoomJoined);
+            ws.off('room-left', handleRoomLeft);
+            ws.off('room-users', handleRoomUsers);
+            ws.off('user-joined', handleUserJoined);
+            ws.off('user-left', handleUserLeft);
         };
-    }, [user]);
+    }, [user, dispatch]);
 
     const sendCreateRoom = (name: string) => {
         WebSocketManager.getInstance().send("create-room", { name });

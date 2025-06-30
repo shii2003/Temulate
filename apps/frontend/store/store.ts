@@ -1,6 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import authReducer from "./features/auth/authSlice";
 import messageReducer from "./features/message/messageSlice"
+import roomReducer from "./features/room/roomSlice"
 import { persistReducer, persistStore, PURGE, REGISTER, REHYDRATE, FLUSH, PAUSE, PERSIST } from "redux-persist";
 
 const createNoopStorage = () => {
@@ -31,6 +32,13 @@ const authPersistConfig = {
     whitelist: ["user"],
 };
 
+const roomPersistConfig = {
+    key: "room",
+    storage,
+    whitelist: ["currentRoomId"],
+};
+
+
 const messagesPersistConfig = {
     key: "messages",
     storage,
@@ -39,6 +47,7 @@ const messagesPersistConfig = {
 const rootReducer = combineReducers({
     auth: persistReducer(authPersistConfig, authReducer),
     messages: persistReducer(messagesPersistConfig, messageReducer),
+    room: persistReducer(roomPersistConfig, roomReducer),
 });
 
 export const store = configureStore({
