@@ -29,20 +29,19 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
 
     const { user } = useSelector((state: RootState) => state.auth);
     const { members } = useSelector((state: RootState) => state.room)
-    const messages = useSelector((state: RootState) => state.messages[roomId] || []);
+    // const messages = useSelector((state: RootState) => state.messages[roomId] || []);
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const prevMessageCountRef = useRef(0);
     const [isNearBottom, setIsNearBottom] = useState(true);
-    const [hasRequestedUsers, setHasRequestedUsers] = useState(false);
+
 
     const { sendGetRoomUsers, onNewMessage, offNewMessage, onUserJoined, offUserJoined, onUserLeft, offUserLeft, onRoomUsers, offRoomUsers } = useWebSocket();
 
     useEffect(() => {
-        if (roomId && !hasRequestedUsers) {
+        if (roomId) {
             sendGetRoomUsers(roomId);
-            setHasRequestedUsers(true);
         }
-    }, [roomId, sendGetRoomUsers, hasRequestedUsers]);
+    }, [roomId]);
 
     useEffect(() => {
         const handleNewMessage = (data: { userId: number, username: string, content: string }) => {
@@ -100,27 +99,27 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
         return () => chatContainer.removeEventListener('scroll', handleScroll);
     }, []);
 
-    useEffect(() => {
-        const chatContainer = chatContainerRef.current;
-        if (!chatContainer) return;
+    // useEffect(() => {
+    //     const chatContainer = chatContainerRef.current;
+    //     if (!chatContainer) return;
 
-        const scrollToBottom = () => {
-            chatContainer.scrollTo({
-                top: chatContainer.scrollHeight,
-                behavior: 'smooth'
-            });
-        };
+    //     const scrollToBottom = () => {
+    //         chatContainer.scrollTo({
+    //             top: chatContainer.scrollHeight,
+    //             behavior: 'smooth'
+    //         });
+    //     };
 
-        if (prevMessageCountRef.current === 0) {
-            scrollToBottom();
-        }
+    //     if (prevMessageCountRef.current === 0) {
+    //         scrollToBottom();
+    //     }
 
-        else if (messages.length > prevMessageCountRef.current && isNearBottom) {
-            scrollToBottom();
-        }
+    //     else if (messages.length > prevMessageCountRef.current && isNearBottom) {
+    //         scrollToBottom();
+    //     }
 
-        prevMessageCountRef.current = messages.length;
-    }, [messages, isNearBottom]);
+    //     prevMessageCountRef.current = messages.length;
+    // }, [messages, isNearBottom]);
 
     return (
         <div className='flex bg-neutral-800  flex-col h-full w-full border-r border-neutral-700'>
@@ -128,7 +127,7 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
             <div
                 ref={chatContainerRef}
                 className='flex-1 overflow-y-auto mb-1 mt-2'>
-                <GroupChatBox messages={messages} />
+                {/* <GroupChatBox messages={messages} /> */}
             </div>
             <MessageInputBox roomId={roomId} />
         </div>

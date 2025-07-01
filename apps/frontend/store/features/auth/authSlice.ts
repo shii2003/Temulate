@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { resetRoomState } from '../room/roomSlice';
+import { RESET_ALL } from '@/store/store';
 
 type User = {
     id: number;
@@ -92,11 +93,11 @@ const authSlice = createSlice({
             .addCase(logout.pending, (state) => {
                 state.isLoading = true;
                 state.error = null;
-                resetRoomState();
             })
             .addCase(logout.fulfilled, (state) => {
                 state.isLoading = false;
                 state.user = null;
+                resetRoomState();
             })
             .addCase(logout.rejected, (state, action) => {
                 state.isLoading = false;
@@ -114,6 +115,7 @@ const authSlice = createSlice({
                 state.isLoading = false;
                 state.error = action.payload as string;
             })
+            .addCase(RESET_ALL, () => initialState);
     },
 });
 

@@ -1,6 +1,7 @@
 "use client"
 import { useAppDispatch } from '@/hooks/redux';
 import { logout } from '@/store/features/auth/authSlice';
+import { persistor, RESET_ALL } from '@/store/store';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { FiLogOut } from "react-icons/fi";
@@ -23,6 +24,8 @@ const LogoutButton: React.FC = () => {
                 toast.success('Logged out successfully.', {
                     id: loadingToastId
                 });
+                dispatch({ type: RESET_ALL });
+                await persistor.purge();
                 router.push("/");
             } else if (logout.rejected.match(resultAction)) {
                 toast.error(resultAction.payload as string, {

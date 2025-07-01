@@ -3,28 +3,30 @@ import RealtimeCanvas from '@/components/CodeRooms/Canvas/RealtimeCanvas';
 import Lobby from '@/components/CodeRooms/WorkSpace/Lobby/Lobby';
 import Workspace from '@/components/CodeRooms/WorkSpace/Workspace';
 import { useWebSocket } from '@/hooks/useWebSocket';
+import { RootState } from '@/store/store';
 import { useParams } from 'next/navigation';
 import React, { use, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { string } from 'zod';
 
 interface PageProps {
 
 }
 
-
 const page: React.FC<PageProps> = () => {
 
     const params = useParams<{ roomNumber: string }>();
     const roomId = params.roomNumber;
     const numericRoomNumber = Number(params.roomNumber);
+    const currentRoomName = useSelector((state: RootState) => state.room.currentRoomName)
 
-    const { isConnected, sendJoinRoom } = useWebSocket();
+    const { booleanIsConnected, sendJoinRoom } = useWebSocket();
 
     useEffect(() => {
-        if (isConnected && roomId) {
-            sendJoinRoom(roomId);
+        if (booleanIsConnected && currentRoomName && params.roomNumber) {
+            sendJoinRoom(currentRoomName);
         }
-    }, [isConnected, roomId, sendJoinRoom]);
+    }, [booleanIsConnected, currentRoomName, params.roomNumber, sendJoinRoom]);
 
     return (
         <div className='h-full overflow-hidden w-full '>

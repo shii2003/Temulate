@@ -1,3 +1,4 @@
+import { RESET_ALL } from "@/store/store";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface Message {
@@ -30,6 +31,9 @@ const messageSlice = createSlice({
         clearRoomMessages: (state, action: PayloadAction<number>) => {
             delete state[action.payload];
         }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(RESET_ALL, () => initialState);
     },
 });
 

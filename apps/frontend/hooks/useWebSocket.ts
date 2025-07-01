@@ -1,8 +1,10 @@
 import { addRoomMember, removeRoomMember, resetRoomState, setCurrentRoom, setRoomMembers } from "@/store/features/room/roomSlice";
 import { RootState } from "@/store/store";
 import { WebSocketManager } from "@/utils/WebSocketManager";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+
 
 interface User {
     id: number;
@@ -16,6 +18,7 @@ export const useWebSocket = () => {
     const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected'>('disconnected');
 
     const user = useSelector((state: RootState) => state.auth.user);
+    const currentRoomName = useSelector((state: RootState) => state.room.currentRoomName)
     const dispatch = useDispatch();
     const currentRoomIdRef = useRef<number | null>(null);
 
@@ -29,8 +32,22 @@ export const useWebSocket = () => {
             setConnectionStatus(ws.isConnected() ? 'connected' : 'disconnected');
         };
 
+        const handleReconnected = () => {
+            console.log("WebSocket reconnected, attempting to rejoin room:", currentRoomName);
+            if (currentRoomName) {
+
+                setTimeout(() => {
+                    sendJoinRoom(currentRoomName);
+                }, 100);
+            }
+        };
+
+        const handleRoomCreated = (data: { roomId: number, roomName: string }) => {
+            dispatch(setCurrentRoom({ id: data.roomId, name: data.roomName }));
+        }
         const handleRoomJoined = (data: { roomId: number; roomName: string }) => {
-            dispatch(setCurrentRoom(data.roomId));
+            console.log(`room joined roomId:${data.roomId} roomName:${data.roomName}`);
+            dispatch(setCurrentRoom({ id: data.roomId, name: data.roomName }));
         }
         const handleRoomLeft = () => {
             dispatch(resetRoomState());
@@ -47,7 +64,9 @@ export const useWebSocket = () => {
             dispatch(removeRoomMember(data.userId))
         }
         ws.on('connected', updateStatus);
+        ws.on('reconnected', handleReconnected);
         ws.on('disconnected', updateStatus);
+        ws.on('room-created', handleRoomCreated)
         ws.on('room-joined', handleRoomJoined);
         ws.on('room-left', handleRoomLeft);
         ws.on('room-users', handleRoomUsers);
@@ -56,14 +75,16 @@ export const useWebSocket = () => {
 
         return () => {
             ws.off('connected', updateStatus);
+            ws.off('reconnected', handleReconnected);
             ws.off('disconnected', updateStatus);
+            ws.off('room-created', handleRoomCreated);
             ws.off('room-joined', handleRoomJoined);
             ws.off('room-left', handleRoomLeft);
             ws.off('room-users', handleRoomUsers);
             ws.off('user-joined', handleUserJoined);
             ws.off('user-left', handleUserLeft);
         };
-    }, [user, dispatch]);
+    }, [user, dispatch, currentRoomName]);
 
     const sendCreateRoom = (name: string) => {
         WebSocketManager.getInstance().send("create-room", { name });
@@ -77,9 +98,10 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().send("leave-room", {});
     };
 
-    const sendGetRoomUsers = (roomId: number) => {
-        WebSocketManager.getInstance().send("get-room-users", { roomId })
-    }
+    const sendGetRoomUsers = useCallback((roomId: number) => {
+        WebSocketManager.getInstance().send("get-room-users", { roomId });
+    }, []);
+
     const sendMessage = (content: string) => {
         WebSocketManager.getInstance().send("send-message", { content });
     };
@@ -187,6 +209,16 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().disconnect();
     };
 
+    useEffect(() => {
+        const handleError = (data: { message: string }) => {
+            toast.error(data.message);
+        };
+        onError(handleError);
+        return () => {
+            offError(handleError);
+        };
+    }, [onError, offError]);
+
     return {
 
         sendCreateRoom,
@@ -222,6 +254,7 @@ export const useWebSocket = () => {
         offDrawEnd,
         offError,
 
+        booleanIsConnected: isConnected(),
         isConnected,
         disconnect,
     };

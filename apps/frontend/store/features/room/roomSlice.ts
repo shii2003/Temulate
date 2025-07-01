@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RESET_ALL } from '../../store'; // adjust path as needed
 
 interface User {
     id: number;
@@ -7,11 +8,13 @@ interface User {
 
 interface RoomState {
     currentRoomId: number | null;
+    currentRoomName: string | null
     members: User[];
 };
 
 const initialState: RoomState = {
     currentRoomId: null,
+    currentRoomName: null,
     members: [],
 }
 
@@ -19,10 +22,10 @@ const roomSlice = createSlice({
     name: 'room',
     initialState,
     reducers: {
-        setCurrentRoom: (state, action: PayloadAction<number | null>) => {
-            state.currentRoomId = action.payload;
-
-            if (action.payload === null) {
+        setCurrentRoom: (state, action: PayloadAction<{ id: number | null; name: string | null }>) => {
+            state.currentRoomId = action.payload.id;
+            state.currentRoomName = action.payload.name;
+            if (action.payload.id === null) {
                 state.members = [];
             }
         },
@@ -38,6 +41,9 @@ const roomSlice = createSlice({
             state.members = state.members.filter(member => member.id !== action.payload);
         },
         resetRoomState: () => initialState,
+    },
+    extraReducers: (builder) => {
+        builder.addCase(RESET_ALL, () => initialState);
     },
 });
 

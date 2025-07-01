@@ -4,6 +4,7 @@ import messageReducer from "./features/message/messageSlice"
 import roomReducer from "./features/room/roomSlice"
 import { persistReducer, persistStore, PURGE, REGISTER, REHYDRATE, FLUSH, PAUSE, PERSIST } from "redux-persist";
 
+export const RESET_ALL = "RESET_ALL";
 const createNoopStorage = () => {
     return {
         getItem() {
@@ -35,7 +36,7 @@ const authPersistConfig = {
 const roomPersistConfig = {
     key: "room",
     storage,
-    whitelist: ["currentRoomId"],
+    whitelist: ["currentRoomId", "currentRoomName"],
 };
 
 

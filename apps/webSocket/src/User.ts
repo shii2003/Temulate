@@ -139,7 +139,7 @@ export class User {
                 },
             });
             console.log(`room created roomid: ${room.id} room name: ${room.name}`)
-            RoomManager.getInstance().createRoom(room.id, this);
+            await RoomManager.getInstance().createOrAddUserToRoom(room.id, this);
             this.roomId = room.id;
             console.log(`current room: ${this.roomId}`)
 
@@ -154,6 +154,7 @@ export class User {
             );
 
             const usersInRoom = RoomManager.getInstance().getUsersInRoom(room.id);
+
             if (usersInRoom) {
                 RoomManager.getInstance().broadcastMessage(
                     room.id,
@@ -196,6 +197,7 @@ export class User {
                     }
                 );
                 return;
+
             }
             const isMember = room.members.some((member) => member.userId === this.id);
 
@@ -266,6 +268,7 @@ export class User {
                 },
                 this
             );
+            console.log(`user: ${this.username} joined room ${room.id}`);
         } catch (error) {
             console.error("Error joining room:", error);
             this.send({ type: 'error', payload: { message: 'Failed to join room' } });
@@ -552,6 +555,7 @@ export class User {
 
 
     destroy() {
+        console.log(`inside user.destroy function user: ${this.username}`);
         if (this.roomId) {
             const roomId = this.roomId;
             RoomManager.getInstance().broadcastMessage(roomId, {

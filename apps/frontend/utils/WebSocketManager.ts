@@ -7,6 +7,7 @@ export class WebSocketManager {
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
     private reconnectDelay = 1000;
+    private wasConnected = false;
 
     private constructor() { }
 
@@ -26,22 +27,27 @@ export class WebSocketManager {
             console.log("WebSocket connected");
             this.reconnectAttempts = 0;
 
+            if (this.wasConnected) {
+                this.emit('reconnected', {});
+            }
+
+            this.wasConnected = true;
+            this.emit('connected', {});
         };
 
         this.socket.onclose = (event) => {
             console.log("WebSocket closed", event);
             this.socket = null;
 
-            // Attempt to reconnect if not a normal closure
             if (event.code !== 1000 && this.reconnectAttempts < this.maxReconnectAttempts) {
                 setTimeout(() => {
                     this.reconnectAttempts++;
                     console.log(`Attempting to reconnect... (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
                     this.connect(url);
                 }, this.reconnectDelay * this.reconnectAttempts);
+            } else {
+                this.emit('disconnected', {});
             }
-
-
         };
 
         this.socket.onerror = (error) => {
@@ -86,6 +92,12 @@ export class WebSocketManager {
         }
     }
 
+    private emit(event: string, data: any): void {
+        if (this.handlers[event]) {
+            this.handlers[event].forEach((handler) => handler(data));
+        }
+    }
+
     public isConnected(): boolean {
         return this.socket !== null && this.socket.readyState === WebSocket.OPEN;
     }
@@ -101,5 +113,6 @@ export class WebSocketManager {
         }
 
         this.handlers = {};
+        this.wasConnected = false;
     }
 }

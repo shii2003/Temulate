@@ -28,10 +28,12 @@ export class RoomManager {
     }
     getUsersInRoom(roomId: number): User[] | null {
         const usersInRoom = this.rooms.get(roomId);
+        console.log(`current rooms: ${JSON.stringify(this.rooms)}`);
+        console.log(`usersInRoom ${roomId}: ${usersInRoom}`);
         return usersInRoom || null;
     }
     async addUserToRoom(roomId: number, user: User) {
-        const room = this.rooms.get(roomId);
+        let room = this.rooms.get(roomId);
         if (!room) {
             user.send({ type: "error", payload: { message: "Room does not exist" } });
             return;
@@ -40,8 +42,30 @@ export class RoomManager {
             user.send({ type: "error", payload: { message: "Room is full" } });
             return;
         }
+        // Remove user if already exists to avoid duplicates
+        room = room.filter((u) => u.id !== user.id);
         room.push(user);
         this.rooms.set(roomId, room);
+    }
+
+    async createOrAddUserToRoom(roomId: number, user: User) {
+        console.log(`current rooms: ${JSON.stringify(this.rooms)}*******************************`);
+        let room = this.rooms.get(roomId);
+        if (!room) {
+            // Room doesn't exist, create it with the user
+            this.createRoom(roomId, user);
+        } else {
+            // Room exists, add user with validation
+            if (room.length >= 10) {
+                user.send({ type: "error", payload: { message: "Room is full" } });
+                return;
+            }
+            // Remove user if already exists to avoid duplicates
+            room = room.filter((u) => u.id !== user.id);
+            room.push(user);
+            this.rooms.set(roomId, room);
+        }
+
     }
     removeUser(user: User, roomId: number) {
         const users = this.rooms.get(roomId);

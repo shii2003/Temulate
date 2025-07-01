@@ -66,7 +66,7 @@ wss.on('connection', async (ws: ExtendedWebSocket, req) => {
             console.log('An error occured.', error)
         })
         ws.on('close', () => {
-            user.destroy();
+            // user.destroy();
         })
     } catch (error) {
         console.log("Error handling WebSocket connection:", error);
