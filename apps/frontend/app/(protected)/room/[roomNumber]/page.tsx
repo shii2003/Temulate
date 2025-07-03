@@ -4,7 +4,7 @@ import Lobby from '@/components/CodeRooms/WorkSpace/Lobby/Lobby';
 import Workspace from '@/components/CodeRooms/WorkSpace/Workspace';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { RootState } from '@/store/store';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import React, { use, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { string } from 'zod';
@@ -17,13 +17,15 @@ const page: React.FC<PageProps> = () => {
 
     const params = useParams<{ roomNumber: string }>();
     const roomId = params.roomNumber;
+    const pathname = usePathname();
     const numericRoomNumber = Number(params.roomNumber);
     const currentRoomName = useSelector((state: RootState) => state.room.currentRoomName)
+    const isPathName = pathname.startsWith('/room/');
 
     const { booleanIsConnected, sendJoinRoom } = useWebSocket();
 
     useEffect(() => {
-        if (booleanIsConnected && currentRoomName && params.roomNumber) {
+        if (booleanIsConnected && currentRoomName && params.roomNumber && isPathName) {
             sendJoinRoom(currentRoomName);
         }
     }, [booleanIsConnected, currentRoomName, params.roomNumber, sendJoinRoom]);

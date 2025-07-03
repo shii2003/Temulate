@@ -7,4 +7,5 @@ const getEnv = (key: string, defaultValue?: string) => {
     return value;
 }
 
-export const ACCESS_TOKEN_SECRET = getEnv("ACCESS_TOKEN_SECRET")
+export const ACCESS_TOKEN_SECRET = getEnv("ACCESS_TOKEN_SECRET");
+export const REDIS_CONNECTION_URL = getEnv("REDIS_CONNECTION_URL");

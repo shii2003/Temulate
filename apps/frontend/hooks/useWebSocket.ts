@@ -209,15 +209,6 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().disconnect();
     };
 
-    useEffect(() => {
-        const handleError = (data: { message: string }) => {
-            toast.error(data.message);
-        };
-        onError(handleError);
-        return () => {
-            offError(handleError);
-        };
-    }, [onError, offError]);
 
     return {
 

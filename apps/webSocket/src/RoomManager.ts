@@ -1,3 +1,4 @@
+import { RedisManager } from "./RedisManager";
 import { OutgoingMessage } from "./types/types";
 import { User } from "./User";
 
@@ -16,6 +17,19 @@ export class RoomManager {
         return this.instance;
     }
 
+    async scheduleRoomDeletion(roomId: number) {
+        await RedisManager.getInstance().setKeyWithExpiry(`room:delete:${roomId}`, "1", 30 * 60);
+        console.log(`Room ${roomId} scheduled for deletion in 30 minutes`);
+    }
+
+    async cancelRoomDeletion(roomId: number) {
+        await RedisManager.getInstance().delKey(`room:delete:${roomId}`);
+        console.log(`Room ${roomId} deletion cancelled`);
+    }
+
+    public removeRoom(roomId: number) {
+        this.rooms.delete(roomId);
+    }
     addRoom(roomId: number, user: User) {
         if (!this.rooms.has(roomId)) {
             this.createRoom(roomId, user);
@@ -33,6 +47,7 @@ export class RoomManager {
         return usersInRoom || null;
     }
     async addUserToRoom(roomId: number, user: User) {
+        await this.cancelRoomDeletion(roomId);
         let room = this.rooms.get(roomId);
         if (!room) {
             user.send({ type: "error", payload: { message: "Room does not exist" } });
@@ -42,7 +57,7 @@ export class RoomManager {
             user.send({ type: "error", payload: { message: "Room is full" } });
             return;
         }
-        // Remove user if already exists to avoid duplicates
+
         room = room.filter((u) => u.id !== user.id);
         room.push(user);
         this.rooms.set(roomId, room);
@@ -52,15 +67,15 @@ export class RoomManager {
         console.log(`current rooms: ${JSON.stringify(this.rooms)}*******************************`);
         let room = this.rooms.get(roomId);
         if (!room) {
-            // Room doesn't exist, create it with the user
+
             this.createRoom(roomId, user);
         } else {
-            // Room exists, add user with validation
+
             if (room.length >= 10) {
                 user.send({ type: "error", payload: { message: "Room is full" } });
                 return;
             }
-            // Remove user if already exists to avoid duplicates
+
             room = room.filter((u) => u.id !== user.id);
             room.push(user);
             this.rooms.set(roomId, room);
@@ -73,8 +88,7 @@ export class RoomManager {
 
         const updatedUsers = users.filter((u) => u.id !== user.id);
         if (updatedUsers.length === 0) {
-            this.rooms.delete(roomId);
-            console.log(`Room ${roomId} has been deleted because it's empty`);
+            this.scheduleRoomDeletion(roomId);
         } else {
             this.rooms.set(roomId, updatedUsers);
         }
@@ -88,4 +102,4 @@ export class RoomManager {
             user.send(message);
         });
     }
-}
+} 

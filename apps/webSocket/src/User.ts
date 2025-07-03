@@ -286,7 +286,7 @@ export class User {
             });
 
             RoomManager.getInstance().removeUser(this, this.roomId);
-            console.log(`user: ${this.username} successfully left the room: ${this.roomId}`)
+            console.log(`User left room: username=${this.username}, userId=${this.id}, roomId=${roomId}`);
             this.roomId = undefined;
 
             console.log(`roomId ${roomId}`)
@@ -566,6 +566,7 @@ export class User {
                 }
             }, this);
             RoomManager.getInstance().removeUser(this, this.roomId);
+            console.log(`User destroyed and left room: username=${this.username}, userId=${this.id}, roomId=${roomId}`);
 
             const usersInRoom = RoomManager.getInstance().getUsersInRoom(roomId);
             if (usersInRoom) {
@@ -587,5 +588,9 @@ export class User {
 
     public send(payload: OutgoingMessage) {
         this.ws.send(JSON.stringify(payload));
+    }
+
+    public getRoomId(): number | undefined {
+        return this.roomId;
     }
 }

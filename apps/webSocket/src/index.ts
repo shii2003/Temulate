@@ -67,10 +67,32 @@ wss.on('connection', async (ws: ExtendedWebSocket, req) => {
         })
         ws.on('close', () => {
             // user.destroy();
+            const roomId = user.getRoomId();
+            if (roomId) {
+                RoomManager.getInstance().scheduleRoomDeletion(roomId);
+            }
+            console.log(`roomId ${roomId} is sceduled for deletion`);
         })
     } catch (error) {
         console.log("Error handling WebSocket connection:", error);
         ws.close(1011, "Internal Server Error");
+    }
+});
+
+import { RoomManager } from "./RoomManager";
+import { RedisManager } from "./RedisManager";
+
+
+RedisManager.getInstance().subscribeToKeyExpiry((expiredKey) => {
+    if (expiredKey.startsWith("room:delete:")) {
+        const roomId = parseInt(expiredKey.split(":")[2], 10);
+
+        const users = RoomManager.getInstance().getUsersInRoom(roomId);
+        if (users) {
+            users.forEach(user => user.destroy());
+        }
+        RoomManager.getInstance().removeRoom(roomId);
+        console.log(`Room ${roomId} destroyed after 30 minutes of inactivity`);
     }
 });
 
