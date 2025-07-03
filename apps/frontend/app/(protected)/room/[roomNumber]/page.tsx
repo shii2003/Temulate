@@ -25,6 +25,13 @@ const page: React.FC<PageProps> = () => {
     const { booleanIsConnected, sendJoinRoom } = useWebSocket();
 
     useEffect(() => {
+        console.log("JoinRoom useEffect fired", {
+            booleanIsConnected,
+            currentRoomName,
+            params: params.roomNumber,
+            pathname,
+            isPathName
+        });
         if (booleanIsConnected && currentRoomName && params.roomNumber && isPathName) {
             sendJoinRoom(currentRoomName);
         }

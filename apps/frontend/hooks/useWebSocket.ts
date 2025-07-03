@@ -34,11 +34,17 @@ export const useWebSocket = () => {
 
         const handleReconnected = () => {
             console.log("WebSocket reconnected, attempting to rejoin room:", currentRoomName);
-            if (currentRoomName) {
-
+            if (
+                typeof window !== "undefined" &&
+                window.location.pathname.startsWith("/room/") &&
+                currentRoomName
+            ) {
+                console.log("WebSocket reconnected, attempting to rejoin room:", currentRoomName);
                 setTimeout(() => {
                     sendJoinRoom(currentRoomName);
                 }, 100);
+            } else {
+                console.log("WebSocket reconnected, but not on a /room/ page. No rejoin attempted.");
             }
         };
 
@@ -91,6 +97,7 @@ export const useWebSocket = () => {
     };
 
     const sendJoinRoom = (roomName: string) => {
+        console.log("sendJoinRoom called with", roomName, "on pathname", typeof window !== "undefined" ? window.location.pathname : "SSR");
         WebSocketManager.getInstance().send("join-room", { roomName });
     };
 
