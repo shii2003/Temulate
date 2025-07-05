@@ -1,4 +1,4 @@
-import ExitCodeRoomButton from '@/components/ui/buttons/ExitCodeRoomButton';
+import ExitCodeRoomButton from '@/components/ui/buttons/ExitRoomButton';
 import { FaRegCopy } from "react-icons/fa6";
 import { CgProfile } from "react-icons/cg";
 import React from 'react';

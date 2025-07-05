@@ -3,7 +3,7 @@ import { RootState } from '@/store/store';
 import React, { useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { CiUser } from "react-icons/ci";
-import { FaCheck, FaRegCopy } from "react-icons/fa6";
+import { FaRegCopy } from "react-icons/fa6";
 import { toast } from 'sonner';
 import { FaRegCheckCircle } from 'react-icons/fa';
 
@@ -18,6 +18,10 @@ const page: React.FC<pageProps> = () => {
     const userId = user?.id || "NA";
     const userName = user?.username || "NA";
     const email = user?.email || "NA";
+
+    const isUserIdLoading = userId === "NA";
+    const isUserNameLoading = userName === "NA";
+    const isEmailLoading = email === "NA";
 
 
     const userIdRef = useRef<HTMLParagraphElement>(null);
@@ -69,10 +73,17 @@ const page: React.FC<pageProps> = () => {
                         <div className='flex flex-col items-start justify-center w-full px-4 py-2 border-b border-neutral-700'>
                             <p className='text-sm text-neutral-300 tracking-wide'>UserId</p>
                             <div className='flex justify-between items-center  w-full'>
-                                <p
-                                    ref={userIdRef}
-                                    className='text-lg '
-                                >{userId}</p>
+                                {isUserIdLoading ? (
+                                    <div className='h-6 w-36 bg-neutral-700 rounded-md animate-pulse'></div>
+                                ) : (
+                                    <p
+                                        ref={userIdRef}
+                                        className='text-lg '
+                                    >
+                                        {userId}
+                                    </p>)
+                                }
+
                                 <button
                                     onClick={() => copyToClipboard(userIdRef, "userId")}
                                     className='h-full p-1'>
@@ -88,10 +99,16 @@ const page: React.FC<pageProps> = () => {
                         <div className='flex flex-col items-start justify-center w-full px-4 py-2 border-b border-neutral-700'>
                             <p className='text-sm text-neutral-300 tracking-wide'>Username</p>
                             <div className='flex justify-between items-center w-full'>
-                                <p
-                                    ref={userNameRef}
-                                    className='text-lg'
-                                >{userName}</p>
+                                {isUserNameLoading ? (
+                                    <div className='h-6 w-36 bg-neutral-700 rounded-md animate-pulse'></div>
+                                ) : (
+                                    <p
+                                        ref={userIdRef}
+                                        className='text-lg '
+                                    >
+                                        {userName}
+                                    </p>)
+                                }
                                 <button
                                     onClick={() => copyToClipboard(userNameRef, "userName")}
                                     className='h-full p-1'
@@ -108,10 +125,16 @@ const page: React.FC<pageProps> = () => {
                         <div className='flex flex-col items-start justify-center w-full px-4 py-2'>
                             <p className='text-sm text-neutral-300 tracking-wide'>Email</p>
                             <div className='flex justify-between items-center w-full'>
-                                <p
-                                    ref={emailRef}
-                                    className='text-lg'
-                                >{email}</p>
+                                {isEmailLoading ? (
+                                    <div className='h-6 w-36 bg-neutral-700 rounded-md animate-pulse'></div>
+                                ) : (
+                                    <p
+                                        ref={userIdRef}
+                                        className='text-lg '
+                                    >
+                                        {email}
+                                    </p>)
+                                }
                                 <button
                                     onClick={() => copyToClipboard(emailRef, "email")}
                                     className='h-full p-1'
