@@ -1,9 +1,10 @@
-import UserInformation from '@/components/Sidebar/UserInformation';
 import ExitRoomButton from '@/components/ui/buttons/ExitRoomButton';
 import { RootState } from '@/store/store';
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { FaRegCopy } from 'react-icons/fa6';
+import { FaRegCheckCircle } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
+import { toast } from 'sonner';
 
 
 type RoomTopBarProps = {
@@ -15,8 +16,28 @@ const RoomTopBar: React.FC<RoomTopBarProps> = ({ setIsLeaveRoomOpen }) => {
     const user = useSelector((state: RootState) => state.auth.user);
     const isLoading = useSelector((state: RootState) => state.auth.isLoading);
     const roomName = useSelector((state: RootState) => state.room.currentRoomName);
+    const [isCopied, setIsCopied] = useState(false);
 
     const isRoomNameLoding = !roomName;
+
+    const copyToClipboard = (text: string) => {
+        if (!text) {
+            toast.error("No room name to copy!");
+            return;
+        }
+
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                toast.success("Room name copied to clipboard!");
+                setIsCopied(true);
+                setTimeout(() => {
+                    setIsCopied(false);
+                }, 2000);
+            })
+            .catch(() => {
+                toast.error("Failed to copy room name. Try again!");
+            });
+    }
     return (
         <div
             className='flex w-full h-12 px-2 py-1  items-center justify-between bg-neutral-800 border-b border-neutral-600'
@@ -53,8 +74,15 @@ const RoomTopBar: React.FC<RoomTopBarProps> = ({ setIsLeaveRoomOpen }) => {
                 <button
                     disabled={isRoomNameLoding}
                     className='hover:scale-105 transition-all duration-200 hover:text-indigo-300 text-indigo-400/50'
+                    onClick={() => copyToClipboard(roomName || '')}
                 >
-                    <FaRegCopy className='' />
+                    {
+                        isCopied ? (
+                            <FaRegCheckCircle className='text-green-400' />
+                        ) : (
+                            <FaRegCopy className='' />
+                        )}
+
                 </button>
             </div>
             <div className='flex items-center justify-center'>

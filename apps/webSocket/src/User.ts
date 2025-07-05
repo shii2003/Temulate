@@ -300,7 +300,8 @@ export class User {
                         userId: this.id,
                         username: this.username
                     }
-                }
+                },
+                this
             );
             const usersInRoom = RoomManager.getInstance().getUsersInRoom(roomId);
             if (usersInRoom) {
