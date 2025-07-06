@@ -12,6 +12,7 @@ export const GET_ROOM_USERS = 'get-room-users';
 export const DRAW_START = 'draw-start';
 export const DRAW_MOVE = 'draw-move';
 export const DRAW_END = 'draw-end';
+export const GET_ROOM_MESSAGES = 'get-room-messages';
 
 export class User {
     public id: number;
@@ -79,6 +80,10 @@ export class User {
                     case DRAW_END:
                         console.log(`draw-end request received from user ${this.id}.`);
                         await this.handleDrawEnd();
+                        break;
+                    case GET_ROOM_MESSAGES:
+                        console.log(`get-room-messages request received from user ${this.id}.`);
+                        await this.handleGetRoomMessages(parsedData.payload.page, parsedData.payload.limit);
                         break;
                     default:
                         console.warn("Unknown message type", parsedData.type);
@@ -411,6 +416,7 @@ export class User {
         }
     }
 
+
     private async handleDrawStart(x: number, y: number, color: string, width: number) {
         if (!this.roomId) {
             this.send({
@@ -554,6 +560,97 @@ export class User {
         }
     }
 
+    private async handleGetRoomMessages(page: number, limit: number) {
+        try {
+            if (!this.roomId) {
+                this.send({
+                    type: "error",
+                    payload: {
+                        message: "Not currently in a room"
+                    }
+                });
+                return;
+            }
+
+            // Check if user is a member of the room
+            const roomMembership = await prisma.roomUser.findFirst({
+                where: {
+                    roomId: this.roomId,
+                    userId: this.id,
+                },
+            });
+
+            if (!roomMembership) {
+                this.send({
+                    type: "error",
+                    payload: {
+                        message: "You are not a member of this room"
+                    }
+                });
+                return;
+            }
+
+            // Calculate pagination
+            const offset = (page - 1) * limit;
+
+            // Get messages with user information
+            const messages = await prisma.message.findMany({
+                where: {
+                    roomId: this.roomId,
+                },
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            username: true,
+                        },
+                    },
+                },
+                orderBy: {
+                    timeStamp: "desc",
+                },
+                skip: offset,
+                take: limit,
+            });
+
+            // Get total count for pagination
+            const totalMessages = await prisma.message.count({
+                where: {
+                    roomId: this.roomId,
+                },
+            });
+
+            // Format messages for frontend
+            const formattedMessages = messages.reverse().map((msg) => ({
+                id: msg.id,
+                userId: msg.user.id,
+                username: msg.user.username,
+                content: msg.content,
+                timestamp: msg.timeStamp,
+            }));
+
+            this.send({
+                type: "room-messages",
+                payload: {
+                    messages: formattedMessages,
+                    pagination: {
+                        currentPage: page,
+                        totalPages: Math.ceil(totalMessages / limit),
+                        totalMessages,
+                        hasMore: offset + limit < totalMessages,
+                    },
+                },
+            });
+        } catch (error) {
+            console.error("Error fetching room messages:", error);
+            this.send({
+                type: "error",
+                payload: {
+                    message: "Failed to load messages"
+                }
+            });
+        }
+    }
 
     destroy() {
         console.log(`inside user.destroy function user: ${this.username}`);

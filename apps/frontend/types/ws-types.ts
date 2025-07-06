@@ -2,7 +2,8 @@ export type OutgoingMessage =
     | { type: "create-room"; payload: { name: string } }
     | { type: "join-room"; payload: { roomName: string } }
     | { type: "leave-room"; payload: {} }
-    | { type: "send-message"; payload: { content: string } };
+    | { type: "send-message"; payload: { content: string } }
+    | { type: "get-room-messages"; payload: { page: number; limit: number } };
 
 export type IncomingMessage =
     | { type: "room-created"; payload: RoomCreatedPayload }
@@ -11,6 +12,7 @@ export type IncomingMessage =
     | { type: "user-left"; payload: UserLeftPayload }
     | { type: "new-message"; payload: NewMessagePayload }
     | { type: "room-left"; payload: {} }
+    | { type: "room-messages"; payload: RoomMessagesPayload }
     | { type: "error"; payload: { message: string } };
 
 export interface RoomCreatedPayload {
@@ -40,5 +42,20 @@ export interface NewMessagePayload {
     userId: number;
     username: string;
     content: string;
+}
 
+export interface RoomMessagesPayload {
+    messages: Array<{
+        id: number;
+        userId: number;
+        username: string;
+        content: string;
+        timestamp: Date;
+    }>;
+    pagination: {
+        currentPage: number;
+        totalPages: number;
+        totalMessages: number;
+        hasMore: boolean;
+    };
 }

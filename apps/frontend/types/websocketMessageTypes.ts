@@ -45,16 +45,36 @@ export type messagesFromWebSocketServer = {
     payload: {
         message: string
     }
+} |
+{
+    type: "room-messages",
+    payload: {
+        messages: Array<{
+            id: number;
+            userId: number;
+            username: string;
+            content: string;
+            timestamp: Date;
+        }>;
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            totalMessages: number;
+            hasMore: boolean;
+        };
+    }
 }
 
 export type messagesToWebSocketServer = {
-    type: 'join-room' | 'leave-room' | 'send-message' | 'create-room';
+    type: 'join-room' | 'leave-room' | 'send-message' | 'create-room' | 'get-room-messages';
     payload: {
         roomId?: number;
         roomName?: string;
         content?: string;
         userId?: number;
         username?: string;
+        page?: number;
+        limit?: number;
     };
 }
 

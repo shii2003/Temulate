@@ -73,6 +73,23 @@ export type OutgoingMessage = {
     payload: {
         message: string
     }
+} | {
+    type: "room-messages",
+    payload: {
+        messages: Array<{
+            id: number;
+            userId: number;
+            username: string;
+            content: string;
+            timestamp: Date;
+        }>;
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            totalMessages: number;
+            hasMore: boolean;
+        };
+    }
 };
 
 export type IncomingMessage =
@@ -83,4 +100,5 @@ export type IncomingMessage =
     | { type: 'get-room-users'; payload: { roomId: number } }
     | { type: 'draw-start'; payload: { x: number, y: number, color: string, width: number, isEraser: boolean } }
     | { type: 'draw-move'; payload: { x: number, y: number } }
-    | { type: 'draw-end'; payload: {} };
+    | { type: 'draw-end'; payload: {} }
+    | { type: 'get-room-messages'; payload: { page: number; limit: number } };

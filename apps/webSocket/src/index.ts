@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import { parse } from "cookie";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import { ACCESS_TOKEN_SECRET } from "./config";
+import { ACCESS_TOKEN_SECRET, REDIS_CONNECTION_URL } from "./config";
 import prisma from "@repo/db/client";
 import { User } from "./User";
 
@@ -112,4 +112,3 @@ setInterval(() => {
 }, HEARTBEAT_INTERVAL);
 
 console.log(`WebSocket server running on ws://localhost:${PORT}`);
-

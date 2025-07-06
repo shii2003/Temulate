@@ -1,5 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { RESET_ALL } from '../../store'; // adjust path as needed
+import { RESET_ALL } from '../../store';
 
 interface User {
     id: number;
@@ -8,7 +8,7 @@ interface User {
 
 interface RoomState {
     currentRoomId: number | null;
-    currentRoomName: string | null
+    currentRoomName: string | null;
     members: User[];
 };
 

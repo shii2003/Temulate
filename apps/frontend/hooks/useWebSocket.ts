@@ -1,4 +1,5 @@
 import { addRoomMember, removeRoomMember, resetRoomState, setCurrentRoom, setRoomMembers } from "@/store/features/room/roomSlice";
+import { clearRoomMessages } from "@/store/features/message/messageSlice";
 import { RootState } from "@/store/store";
 import { WebSocketManager } from "@/utils/WebSocketManager";
 import { useEffect, useRef, useState, useCallback } from "react";
@@ -54,9 +55,15 @@ export const useWebSocket = () => {
         const handleRoomJoined = (data: { roomId: number; roomName: string }) => {
             console.log(`room joined roomId:${data.roomId} roomName:${data.roomName}`);
             dispatch(setCurrentRoom({ id: data.roomId, name: data.roomName }));
+            currentRoomIdRef.current = data.roomId;
         }
         const handleRoomLeft = () => {
             dispatch(resetRoomState());
+            // Clear messages for the current room
+            if (currentRoomIdRef.current) {
+                dispatch(clearRoomMessages(currentRoomIdRef.current));
+                currentRoomIdRef.current = null;
+            }
         }
 
         const handleRoomUsers = (data: User[]) => {
@@ -109,6 +116,10 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().send("get-room-users", { roomId });
     }, []);
 
+    const sendGetRoomMessages = useCallback((page: number, limit: number) => {
+        WebSocketManager.getInstance().send("get-room-messages", { page, limit });
+    }, []);
+
     const sendMessage = (content: string) => {
         WebSocketManager.getInstance().send("send-message", { content });
     };
@@ -151,6 +162,24 @@ export const useWebSocket = () => {
 
     const onRoomUsers = (callback: (data: { users: { id: number; username: string }[] }) => void) => {
         WebSocketManager.getInstance().on('room-users', callback)
+    };
+
+    const onRoomMessages = (callback: (data: {
+        messages: Array<{
+            id: number;
+            userId: number;
+            username: string;
+            content: string;
+            timestamp: Date;
+        }>;
+        pagination: {
+            currentPage: number;
+            totalPages: number;
+            totalMessages: number;
+            hasMore: boolean;
+        };
+    }) => void) => {
+        WebSocketManager.getInstance().on("room-messages", callback);
     };
     const onDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number, isEraser: boolean }) => void) => {
         WebSocketManager.getInstance().on("draw-start", callback);
@@ -196,6 +225,10 @@ export const useWebSocket = () => {
         WebSocketManager.getInstance().off('room-users', callback);
     };
 
+    const offRoomMessages = (callback: (data: any) => void) => {
+        WebSocketManager.getInstance().off('room-messages', callback);
+    };
+
     const offDrawStart = (callback: (data: { userId: number, x: number, y: number, color: string, width: number, isEraser: boolean }) => void) => {
         WebSocketManager.getInstance().off("draw-start", callback);
     };
@@ -228,6 +261,7 @@ export const useWebSocket = () => {
         sendLeaveRoom,
         sendMessage,
         sendGetRoomUsers,
+        sendGetRoomMessages,
         sendDrawStart,
         sendDrawMove,
         sendDrawEnd,
@@ -240,6 +274,7 @@ export const useWebSocket = () => {
         onUserLeft,
         onNewMessage,
         onRoomUsers,
+        onRoomMessages,
         onDrawStart,
         onDrawMove,
         onDrawEnd,
@@ -252,6 +287,7 @@ export const useWebSocket = () => {
         offNewMessage,
         offUserJoined,
         offRoomUsers,
+        offRoomMessages,
         offDrawStart,
         offDrawMove,
         offDrawEnd,
