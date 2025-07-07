@@ -28,7 +28,7 @@ const RoomTopBar: React.FC<RoomTopBarProps> = ({ setIsLeaveRoomOpen }) => {
 
         navigator.clipboard.writeText(text)
             .then(() => {
-                toast.success("Room name copied to clipboard!");
+
                 setIsCopied(true);
                 setTimeout(() => {
                     setIsCopied(false);

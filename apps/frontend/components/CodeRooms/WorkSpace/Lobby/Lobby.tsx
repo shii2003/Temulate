@@ -35,16 +35,26 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
         offRoomMessages
     } = useWebSocket();
 
-
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout | null = null;
+
         const loadInitialMessages = () => {
             if (!roomId || isInitialLoadComplete) return;
 
             dispatch(setLoading({ roomId, isLoading: true }));
             sendGetRoomMessages(1, 50);
+
+            // Fallback: reset loading after 5 seconds if no response
+            timeoutId = setTimeout(() => {
+                dispatch(setLoading({ roomId, isLoading: false }));
+            }, 5000);
         };
 
         loadInitialMessages();
+
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+        };
     }, [roomId, dispatch, isInitialLoadComplete, sendGetRoomMessages]);
 
     useEffect(() => {
@@ -55,6 +65,8 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
 
 
     useEffect(() => {
+        let timeoutId: NodeJS.Timeout | null = null;
+
         const handleRoomMessages = (data: {
             messages: Array<{
                 id: number;
@@ -78,12 +90,15 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
 
             setIsInitialLoadComplete(true);
             dispatch(setLoading({ roomId, isLoading: false }));
+
+            if (timeoutId) clearTimeout(timeoutId);
         };
 
         onRoomMessages(handleRoomMessages);
 
         return () => {
             offRoomMessages(handleRoomMessages);
+            if (timeoutId) clearTimeout(timeoutId);
         };
     }, [roomId, dispatch, onRoomMessages, offRoomMessages]);
 

@@ -42,12 +42,12 @@ const GroupChatBox: React.FC<GroupChatBoxProps> = ({ roomId }) => {
 
         const { scrollTop } = container;
 
-        // Load more messages when user scrolls to the top
         if (scrollTop < 100 && hasMore && !isLoadingRef.current) {
             loadMoreMessages();
         }
     }, [loadMoreMessages, hasMore]);
 
+    // Handle pagination (loading more messages when scrolling up)
     useEffect(() => {
         const handleRoomMessages = (data: {
             messages: Array<{
@@ -64,15 +64,18 @@ const GroupChatBox: React.FC<GroupChatBoxProps> = ({ roomId }) => {
                 hasMore: boolean;
             };
         }) => {
-            dispatch(addMessagesToTop({
-                roomId,
-                messages: data.messages,
-                pagination: data.pagination,
-            }));
+            // Only handle pagination (currentPage > 1), initial load is handled in Lobby.tsx
+            if (data.pagination.currentPage > 1) {
+                dispatch(addMessagesToTop({
+                    roomId,
+                    messages: data.messages,
+                    pagination: data.pagination,
+                }));
 
-            toast.success(`Loaded ${data.messages.length} more messages`);
-            isLoadingRef.current = false;
-            dispatch(setLoading({ roomId, isLoading: false }));
+                toast.success(`Loaded ${data.messages.length} more messages`);
+                isLoadingRef.current = false;
+                dispatch(setLoading({ roomId, isLoading: false }));
+            }
         };
 
         onRoomMessages(handleRoomMessages);
@@ -93,13 +96,38 @@ const GroupChatBox: React.FC<GroupChatBoxProps> = ({ roomId }) => {
     useEffect(() => {
         const container = chatContainerRef.current;
         if (container && messages.length > 0) {
-            const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
-
-            if (isNearBottom) {
-                container.scrollTop = container.scrollHeight;
+            // Always scroll to bottom on initial load (first page)
+            if (currentPage === 1) {
+                // Use setTimeout to ensure DOM is updated
+                setTimeout(() => {
+                    if (container) {
+                        container.scrollTop = container.scrollHeight;
+                    }
+                }, 100);
+            } else {
+                // For subsequent loads (pagination), only scroll if user is near bottom
+                const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+                if (isNearBottom) {
+                    container.scrollTop = container.scrollHeight;
+                }
             }
         }
-    }, [messages.length]);
+    }, [messages.length, currentPage]);
+
+    // Additional effect to ensure scroll to bottom on initial load
+    useEffect(() => {
+        const container = chatContainerRef.current;
+        if (container && messages.length > 0 && currentPage === 1) {
+            // Force scroll to bottom after a short delay to ensure all content is rendered
+            const timer = setTimeout(() => {
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }, 200);
+
+            return () => clearTimeout(timer);
+        }
+    }, [messages.length, currentPage]);
 
     return (
         <div
