@@ -16,6 +16,7 @@
     "@uiw/react-codemirror": "^4.23.7",
     "@uiw/react-split": "^5.9.3",
     "axios": "^1.7.9",
+    "framer-motion": "^12.23.12",
     "gsap": "^3.12.7",
     "next": "15.1.4",
     "react": "^19.0.0",

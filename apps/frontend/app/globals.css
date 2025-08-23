@@ -10,6 +10,31 @@ body {
   overflow-x: hidden;
 }
 
+@keyframes travel {
+  0% {
+    offset-distance: 0%;
+  }
+
+  100% {
+    offset-distance: 100%;
+  }
+}
+
+.glow-dot {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 12px 6px rgba(255, 255, 255, 0.6),
+    0 0 20px 10px rgba(99, 102, 241, 0.8);
+
+  /* Path animation around border */
+  offset-path: rect(0 auto auto 0 round 0 0 0 0);
+  offset-distance: 0%;
+  animation: travel 3s linear infinite;
+}
+
 .chrome-picker {
   background-color: #27272a !important;
 }
