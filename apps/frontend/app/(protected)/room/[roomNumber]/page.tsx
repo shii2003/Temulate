@@ -9,7 +9,6 @@ import { RootState } from '@/store/store';
 import { useParams, usePathname } from 'next/navigation';
 import React, { use, useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { string } from 'zod';
 
 interface PageProps {
 
@@ -41,17 +40,21 @@ const page: React.FC<PageProps> = () => {
     }, [booleanIsConnected, currentRoomName, params.roomNumber, sendJoinRoom]);
 
     return (
-        <div className='h-full overflow-hidden w-full '>
-            <div className='flex w-full h-full  max-w-7xl mx-auto'>
-                <div className='flex flex-col w-3/5  min-w-5 '>
-                    <div className='flex'>
+        <div className='h-full  w-full'>
+            <div className='flex flex-col md:flex-row w-full h-full max-w-7xl mx-auto'>
+
+                <div className='flex flex-col w-full md:w-3/5 md:min-w-5'>
+
+                    <div className='flex '>
                         <RoomTopBar setIsLeaveRoomOpen={setIsLeaveRoomOpen} />
                     </div>
-                    <div className='flex-1'>
+
+                    <div className='flex-1 min-h-0 '>
                         <RealtimeCanvas roomId={numericRoomNumber} />
                     </div>
                 </div>
-                <div className='w-2/5'>
+
+                <div className='w-full md:w-2/5 flex-1 md:flex-none min-h-0 '>
                     <Lobby roomId={numericRoomNumber} />
                 </div>
             </div>

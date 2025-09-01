@@ -142,10 +142,16 @@ const Lobby: React.FC<LobbyProps> = ({ roomId }) => {
     }, [roomId, dispatch, user, onNewMessage, offNewMessage, onUserJoined, offUserJoined, onUserLeft, offUserLeft, onRoomUsers, offRoomUsers]);
 
     return (
-        <div className='flex bg-neutral-800 flex-col h-full w-full border-r border-neutral-700'>
-            <OnlineUsersList onlineUsers={members} />
-            <GroupChatBox roomId={roomId} />
-            <MessageInputBox roomId={roomId} />
+        <div className='flex bg-neutral-800 flex-col h-full w-full border-r border-neutral-700 min-h-0'>
+            <div className='flex-shrink-0 hidden md:block'>
+                <OnlineUsersList onlineUsers={members} />
+            </div>
+            <div className='flex-1 min-h-0 flex flex-col'>
+                <GroupChatBox roomId={roomId} />
+            </div>
+            <div className='flex-shrink-0'>
+                <MessageInputBox roomId={roomId} />
+            </div>
         </div>
     );
 };
