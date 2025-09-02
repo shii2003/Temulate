@@ -12,18 +12,22 @@ const Navbar: React.FC = () => {
                  bg-neutral-900/80 backdrop-blur-md shadow-lg
                  px-6 py-2 rounded-full flex items-center justify-between gap-6 z-50 border border-neutral-700'>
         <div className='flex items-center justify-between gap-3'>
-            <Logo size={50} />
+            <Logo size={40} />
             <p className='text-2xl font-bold tracking-wide bg-gradient-to-r from-neutral-300 via-neutral-500 to-neutral-700 bg-clip-text text-transparent'>Temulate</p>
         </div>
-        <div className='flex items-center justify-center gap-3'>
+        <div className='flex items-center justify-center gap-3 '>
 
-            <div>About</div>
-            <div> Features</div>
-            <div className='px-3 py-1 rounded-xl border border-neutral-700 bg-neutral-800 hover:bg-neutral-700/70'> <GrGithub size={20} /></div>
+            <div className='hidden md:block'>About</div>
+            <div className='hidden md:block'> Features</div>
+            <div className='px-3 py-1 rounded-xl border border-neutral-700 bg-neutral-800 hover:bg-neutral-700/70 hidden md:block'> <GrGithub size={20} /></div>
         </div>
         <div className='flex items-center gap-4'>
-            <Button title={"Login"} />
-            <Button title={"SignUp"} />
+            <div>
+                <Button title={"Login"} />
+            </div>
+            <div className='hidden md:block'>
+                <Button title={"SignUp"} />
+            </div>
         </div>
     </div>)
 }
