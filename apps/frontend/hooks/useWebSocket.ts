@@ -59,7 +59,7 @@ export const useWebSocket = () => {
         }
         const handleRoomLeft = () => {
             dispatch(resetRoomState());
-        
+
             if (currentRoomIdRef.current) {
                 dispatch(clearRoomMessages(currentRoomIdRef.current));
                 currentRoomIdRef.current = null;

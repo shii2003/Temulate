@@ -186,94 +186,118 @@ export class User {
     }
 
     private async handleJoinRoom(roomName: string) {
+        let room: any = null;
+
         try {
-            const room = await prisma.room.findUnique({
-                where: { name: roomName },
-                include: { members: true },
-            });
 
-            if (!room) {
-                console.log(`the room which the user: ${this.username} is trying to access does not exit`)
+            await prisma.$transaction(async (tx) => {
+                room = await tx.room.findUnique({
+                    where: { name: roomName },
+                    include: { members: true },
+                });
 
-                this.send(
-                    {
+                if (!room) {
+                    console.log(`the room which the user: ${this.username} is trying to access does not exist`);
+                    this.send({
                         type: 'error',
                         payload: { message: 'Room does not exist' }
-                    }
-                );
-                return;
-
-            }
-            const isMember = room.members.some((member) => member.userId === this.id);
-
-            if (!isMember) {
-                await prisma.roomUser.create({
-                    data: {
-                        userId: this.id,
-                        roomId: room.id,
-                    }
-                });
-            }
-            await RoomManager.getInstance().addUserToRoom(room.id, this);
-            this.roomId = room.id;
-
-            console.log(`user: ${this.username} joined the room: ${this.roomId} (${roomName}).`)
-
-            this.send(
-                {
-                    type: 'room-joined',
-                    payload: {
-                        roomId: room.id,
-                        roomName: room.name,
-                    }
+                    });
+                    return;
                 }
-            );
 
-            const usersInRoom = RoomManager.getInstance().getUsersInRoom(room.id);
-            if (usersInRoom) {
 
-                RoomManager.getInstance().broadcastMessage(
-                    room.id,
-                    {
-                        type: 'room-users',
+                const currentMemberCount = await tx.roomUser.count({
+                    where: { roomId: room.id }
+                });
+
+                if (currentMemberCount >= 10) {
+                    this.send({
+                        type: 'error',
+                        payload: { message: 'Room is full' }
+                    });
+                    return;
+                }
+
+                const isMember = room.members.some((member: any) => member.userId === this.id);
+
+                if (!isMember) {
+                    await tx.roomUser.create({
+                        data: {
+                            userId: this.id,
+                            roomId: room.id,
+                        }
+                    });
+                }
+            });
+
+            if (room) {
+                try {
+                    await RoomManager.getInstance().addUserToRoom(room.id, this);
+                    this.roomId = room.id;
+
+                    console.log(`user: ${this.username} joined the room: ${this.roomId} (${roomName}).`);
+
+                    this.send({
+                        type: 'room-joined',
                         payload: {
-                            users: usersInRoom.map(user => ({
-                                id: user.id,
-                                username: user.username,
-                            }))
+                            roomId: room.id,
+                            roomName: room.name,
                         }
-                    },
-                    this
-                )
+                    });
 
-                this.send({
-                    type: 'room-users',
-                    payload: {
-                        users: usersInRoom.map(user => ({
-                            id: user.id,
-                            username: user.username,
-                        }))
+                    const usersInRoom = RoomManager.getInstance().getUsersInRoom(room.id);
+                    if (usersInRoom) {
+                        RoomManager.getInstance().broadcastMessage(
+                            room.id,
+                            {
+                                type: 'room-users',
+                                payload: {
+                                    users: usersInRoom.map(user => ({
+                                        id: user.id,
+                                        username: user.username,
+                                    }))
+                                }
+                            },
+                            this
+                        );
+
+                        this.send({
+                            type: 'room-users',
+                            payload: {
+                                users: usersInRoom.map(user => ({
+                                    id: user.id,
+                                    username: user.username,
+                                }))
+                            }
+                        });
                     }
-                })
+
+                    RoomManager.getInstance().broadcastMessage(
+                        room.id,
+                        {
+                            type: 'user-joined',
+                            payload: {
+                                user: {
+                                    id: this.id,
+                                    username: this.username
+                                }
+                            }
+                        },
+                        this
+                    );
+                    console.log(`user: ${this.username} joined room ${room.id}`);
+                } catch (inMemoryError) {
+
+                    console.error("In-memory operation failed, rolling back database changes:", inMemoryError);
+                    await prisma.roomUser.deleteMany({
+                        where: {
+                            userId: this.id,
+                            roomId: room.id,
+                        }
+                    });
+                    this.send({ type: 'error', payload: { message: 'Failed to join room' } });
+                }
             }
-
-
-            console.log(`user: ${this.username} joined room ${room.id}`)
-
-            RoomManager.getInstance().broadcastMessage(
-                room.id,
-                {
-                    type: 'user-joined',
-                    payload: {
-                        user: {
-                            id: this.id,
-                            username: this.username
-                        }
-                    }
-                },
-                this
-            );
-            console.log(`user: ${this.username} joined room ${room.id}`);
         } catch (error) {
             console.error("Error joining room:", error);
             this.send({ type: 'error', payload: { message: 'Failed to join room' } });
@@ -281,22 +305,29 @@ export class User {
     }
 
     private async handleLeaveRoom() {
-        if (this.roomId) {
-            const roomId = this.roomId;
-            await prisma.roomUser.deleteMany({
-                where: {
-                    userId: this.id,
-                    roomId: roomId,
-                },
+        if (!this.roomId) {
+            this.send({
+                type: 'error',
+                payload: {
+                    message: 'Not currently in a room'
+                }
             });
+            return;
+        }
 
-            RoomManager.getInstance().removeUser(this, this.roomId);
-            console.log(`User left room: username=${this.username}, userId=${this.id}, roomId=${roomId}`);
+        const roomId = this.roomId;
+
+        try {
+
+            RoomManager.getInstance().removeUser(this, roomId);
             this.roomId = undefined;
 
-            console.log(`roomId ${roomId}`)
+            console.log(`User left room: username=${this.username}, userId=${this.id}, roomId=${roomId}`);
+
+
             this.send({ type: 'room-left', payload: {} });
 
+            // Broadcast to other users in the room
             RoomManager.getInstance().broadcastMessage(
                 roomId,
                 {
@@ -308,6 +339,8 @@ export class User {
                 },
                 this
             );
+
+            // Update room users list
             const usersInRoom = RoomManager.getInstance().getUsersInRoom(roomId);
             if (usersInRoom) {
                 RoomManager.getInstance().broadcastMessage(
@@ -323,15 +356,19 @@ export class User {
                     }
                 );
             }
-        } else {
-            this.send(
-                {
-                    type: 'error',
-                    payload: {
-                        message: 'Not currently in a room'
-                    }
-                }
-            );
+
+
+            await prisma.roomUser.deleteMany({
+                where: {
+                    userId: this.id,
+                    roomId: roomId,
+                },
+            });
+
+        } catch (error) {
+            console.error("Error leaving room:", error);
+
+            this.send({ type: 'error', payload: { message: 'Error leaving room' } });
         }
     }
 
@@ -433,6 +470,18 @@ export class User {
         this.lastStrokeIsEraser = color === '#171717';
 
         try {
+            // Store in database first
+            await prisma.drawingAction.create({
+                data: {
+                    roomId: this.roomId,
+                    userId: this.id,
+                    type: 'start',
+                    x, y, color, width,
+                    isEraser: this.lastStrokeIsEraser
+                }
+            });
+
+            // Then broadcast to other users
             RoomManager.getInstance().broadcastMessage(
                 this.roomId,
                 {
@@ -448,22 +497,13 @@ export class User {
                 },
                 this
             );
-
-            await prisma.drawingAction.create({
-                data: {
-                    roomId: this.roomId,
-                    userId: this.id,
-                    type: 'start',
-                    x, y, color, width
-                }
-            });
         } catch (error) {
             console.log(`error in handleDrawStart function for userId: ${this.id}`)
             this.send(
                 {
                     type: "error",
                     payload: {
-                        message: "an error occured."
+                        message: "an error occurred."
                     }
                 }
             );
@@ -482,6 +522,20 @@ export class User {
         }
 
         try {
+            // Store in database first
+            await prisma.drawingAction.create({
+                data: {
+                    roomId: this.roomId,
+                    userId: this.id,
+                    type: 'move',
+                    x, y,
+                    color: this.lastStrokeColor,
+                    width: this.lastStrokeWidth,
+                    isEraser: this.lastStrokeIsEraser
+                }
+            });
+
+            // Then broadcast to other users
             RoomManager.getInstance().broadcastMessage(
                 this.roomId,
                 {
@@ -497,22 +551,13 @@ export class User {
                 },
                 this
             );
-
-            await prisma.drawingAction.create({
-                data: {
-                    roomId: this.roomId,
-                    userId: this.id,
-                    type: 'move',
-                    x, y
-                }
-            });
         } catch (error) {
             console.log(`error in handleDrawMove function for userId: ${this.id}`)
             this.send(
                 {
                     type: "error",
                     payload: {
-                        message: "an error occured."
+                        message: "an error occurred."
                     }
                 }
             )
@@ -531,6 +576,16 @@ export class User {
         }
 
         try {
+            // Store in database first
+            await prisma.drawingAction.create({
+                data: {
+                    roomId: this.roomId,
+                    userId: this.id,
+                    type: 'end'
+                }
+            });
+
+            // Then broadcast to other users
             RoomManager.getInstance().broadcastMessage(
                 this.roomId,
                 {
@@ -539,21 +594,13 @@ export class User {
                 },
                 this
             );
-
-            await prisma.drawingAction.create({
-                data: {
-                    roomId: this.roomId,
-                    userId: this.id,
-                    type: 'end'
-                }
-            });
         } catch (error) {
             console.log(`error in handleDrawEnd function for userId: ${this.id}`)
             this.send(
                 {
                     type: "error",
                     payload: {
-                        message: "an error occured."
+                        message: "an error occurred."
                     }
                 }
             )

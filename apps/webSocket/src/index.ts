@@ -6,6 +6,10 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { ACCESS_TOKEN_SECRET, REDIS_CONNECTION_URL } from "./config";
 import prisma from "@repo/db/client";
 import { User } from "./User";
+import { RoomManager } from "./RoomManager";
+import { UserManager } from "./UserManager";
+import { RedisManager } from "./RedisManager";
+import { SystemMonitor } from "./utils/SystemMonitor";
 
 const PORT = 8080;
 const wss = new WebSocketServer({ port: PORT });
@@ -62,25 +66,25 @@ wss.on('connection', async (ws: ExtendedWebSocket, req) => {
 
         let user = new User(ws, currentUser.id, currentUser.username);
 
+
+        UserManager.getInstance().addUser(user);
+
         ws.on('error', (error) => {
-            console.log('An error occured.', error)
+            console.log('An error occurred.', error);
+
+            UserManager.getInstance().forceRemoveUser(user.id);
         })
+
         ws.on('close', () => {
-            // user.destroy();
-            const roomId = user.getRoomId();
-            if (roomId) {
-                RoomManager.getInstance().scheduleRoomDeletion(roomId);
-            }
-            console.log(`roomId ${roomId} is sceduled for deletion`);
+            console.log(`User ${user.username} disconnected`);
+
+            UserManager.getInstance().removeUser(user.id);
         })
     } catch (error) {
         console.log("Error handling WebSocket connection:", error);
         ws.close(1011, "Internal Server Error");
     }
 });
-
-import { RoomManager } from "./RoomManager";
-import { RedisManager } from "./RedisManager";
 
 
 RedisManager.getInstance().subscribeToKeyExpiry((expiredKey) => {
@@ -96,9 +100,13 @@ RedisManager.getInstance().subscribeToKeyExpiry((expiredKey) => {
     }
 });
 
+
+const systemMonitor = SystemMonitor.getInstance();
+systemMonitor.startMonitoring();
+
+
 setInterval(() => {
     wss.clients.forEach((ws) => {
-
         const extWs = ws as ExtendedWebSocket;
 
         if (!extWs.isAlive) {
@@ -111,4 +119,24 @@ setInterval(() => {
     })
 }, HEARTBEAT_INTERVAL);
 
+
+process.on('SIGINT', () => {
+    console.log('Received SIGINT, shutting down gracefully...');
+    systemMonitor.stopMonitoring();
+    wss.close(() => {
+        console.log('WebSocket server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGTERM', () => {
+    console.log('Received SIGTERM, shutting down gracefully...');
+    systemMonitor.stopMonitoring();
+    wss.close(() => {
+        console.log('WebSocket server closed');
+        process.exit(0);
+    });
+});
+
 console.log(`WebSocket server running on ws://localhost:${PORT}`);
+console.log('System monitoring enabled');
